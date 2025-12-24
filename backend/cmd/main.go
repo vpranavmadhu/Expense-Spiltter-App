@@ -15,6 +15,9 @@ func main() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
+	//created table inside db
+	err = database.InitDb(db)
+
 	//created gin frame and passed the db address
 	r := routes.SetupRoutes(db)
 

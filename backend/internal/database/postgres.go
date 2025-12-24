@@ -2,6 +2,7 @@ package database
 
 import (
 	"esapp/configs"
+	"esapp/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -9,9 +10,9 @@ import (
 
 func ConnectPostgres() (*gorm.DB, error) {
 
-	con := configs.LoadConfig()
+	config := configs.LoadConfig()
 
-	dsn := con.DBUrl
+	dsn := config.DBUrl
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -19,4 +20,9 @@ func ConnectPostgres() (*gorm.DB, error) {
 	}
 
 	return db, nil
+}
+
+func InitDb(db *gorm.DB) error {
+	db.AutoMigrate(&models.User{})
+	return nil
 }
