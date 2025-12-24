@@ -16,6 +16,7 @@ func SetupRoutes(db *gorm.DB) *gin.Engine {
 	r := gin.Default()
 	r.Use(middleware.CORSMiddleware())
 
+	//auth
 	userRepo := repository.NewUserRepository(db)
 	authService := services.NewAuthService(userRepo)
 	authHandler := handlers.NewAuthHandler(authService)
@@ -26,5 +27,14 @@ func SetupRoutes(db *gorm.DB) *gin.Engine {
 		auth.POST("/login", authHandler.Login)
 	}
 
+	//user
+	userService := services.NewUserService(userRepo)
+	userHandler := handlers.NewUserHandler(userService)
+
+	api := r.Group("/api")
+	{
+		api.Use(middleware.AuthMiddleware())
+		api.GET("/me", userHandler.GetMe)
+	}
 	return r
 }
