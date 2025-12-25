@@ -76,3 +76,28 @@ func (h *GroupHandler) ListGroups(c *gin.Context) {
 
 	c.JSON(200, response)
 }
+
+func (h *GroupHandler) ListMembers(c *gin.Context) {
+	val, _ := c.Get("userID")
+	requesterID := val.(uint)
+
+	groupIDParam := c.Param("groupId")
+	groupID, _ := strconv.ParseUint(groupIDParam, 10, 64)
+
+	members, err := h.groupService.ListMembers(requesterID, uint(groupID))
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	response := make([]gin.H, 0)
+	for _, u := range members {
+		response = append(response, gin.H{
+			"id":       u.ID,
+			"username": u.Username,
+			"email":    u.Email,
+		})
+	}
+
+	c.JSON(200, response)
+}

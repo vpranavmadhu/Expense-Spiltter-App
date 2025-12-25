@@ -11,6 +11,7 @@ type GroupService interface {
 	CreateGroup(userID uint, req dto.CreateGroupRequest) error
 	AddMemberByEmail(requesterID uint, groupID uint, email string) error
 	ListGroups(userID uint) ([]models.Group, error)
+	ListMembers(requesterID, groupID uint) ([]models.User, error)
 }
 
 type groupService struct {
@@ -78,4 +79,17 @@ func (s *groupService) AddMemberByEmail(requesterID uint, groupID uint, email st
 
 func (s *groupService) ListGroups(userID uint) ([]models.Group, error) {
 	return s.groupRepo.GetGroupsByUserID(userID)
+}
+
+func (s *groupService) ListMembers(requesterID, groupID uint) ([]models.User, error) {
+
+	isMember, err := s.groupRepo.IsMember(groupID, requesterID)
+	if err != nil {
+		return nil, err
+	}
+	if !isMember {
+		return nil, errors.New("not authorized")
+	}
+
+	return s.groupRepo.GetMembersByGroupID(groupID)
 }

@@ -11,6 +11,7 @@ type GroupRepository interface {
 	AddMember(member *models.GroupMember) error
 	IsMember(groupID, userID uint) (bool, error)
 	GetGroupsByUserID(userID uint) ([]models.Group, error)
+	GetMembersByGroupID(groupID uint) ([]models.User, error)
 }
 
 type groupRepository struct {
@@ -43,4 +44,15 @@ func (r *groupRepository) GetGroupsByUserID(userID uint) ([]models.Group, error)
 		Find(&groups).Error
 
 	return groups, err
+}
+
+func (r *groupRepository) GetMembersByGroupID(groupID uint) ([]models.User, error) {
+	var users []models.User
+
+	err := r.db.
+		Joins("JOIN group_members gm ON gm.user_id = users.id").
+		Where("gm.group_id = ?", groupID).
+		Find(&users).Error
+
+	return users, err
 }
