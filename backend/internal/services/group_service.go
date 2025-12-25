@@ -9,14 +9,17 @@ import (
 
 type GroupService interface {
 	CreateGroup(userID uint, req dto.CreateGroupRequest) error
+	AddMemberByEmail(requesterID uint, groupID uint, email string) error
+	ListGroups(userID uint) ([]models.Group, error)
 }
 
 type groupService struct {
 	groupRepo repository.GroupRepository
+	userRepo  repository.UserRepository
 }
 
-func NewGroupService(groupRepo repository.GroupRepository) GroupService {
-	return &groupService{groupRepo: groupRepo}
+func NewGroupService(groupRepo repository.GroupRepository, userRepo repository.UserRepository) GroupService {
+	return &groupService{groupRepo: groupRepo, userRepo: userRepo}
 }
 
 func (s *groupService) CreateGroup(userID uint, req dto.CreateGroupRequest) error {
@@ -39,4 +42,40 @@ func (s *groupService) CreateGroup(userID uint, req dto.CreateGroupRequest) erro
 	}
 
 	return s.groupRepo.AddMember(member)
+}
+
+func (s *groupService) AddMemberByEmail(requesterID uint, groupID uint, email string) error {
+
+	isMember, err := s.groupRepo.IsMember(groupID, requesterID)
+	if err != nil {
+		return err
+	}
+	if !isMember {
+		return errors.New("not authorized")
+	}
+
+	user, err := s.userRepo.FindByEmail(email)
+	if err != nil {
+		return errors.New("user not found")
+	}
+
+	exists, err := s.groupRepo.IsMember(groupID, user.ID)
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		return errors.New("user already in the group")
+	}
+
+	memeber := &models.GroupMember{
+		GroupID: groupID,
+		UserID:  user.ID,
+	}
+
+	return s.groupRepo.AddMember(memeber)
+}
+
+func (s *groupService) ListGroups(userID uint) ([]models.Group, error) {
+	return s.groupRepo.GetGroupsByUserID(userID)
 }
