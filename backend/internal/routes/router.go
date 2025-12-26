@@ -19,16 +19,19 @@ func SetupRoutes(db *gorm.DB) *gin.Engine {
 	//repos
 	userRepo := repository.NewUserRepository(db)
 	groupReop := repository.NewGroupRepository(db)
+	expenseRepo := repository.NewExpenseRepository(db)
 
 	//services
 	authService := services.NewAuthService(userRepo)
 	userService := services.NewUserService(userRepo)
 	groupService := services.NewGroupService(groupReop, userRepo)
+	expenseService := services.NewExpenseService(expenseRepo, groupReop)
 
 	//handlers
 	authHandler := handlers.NewAuthHandler(authService)
 	userHandler := handlers.NewUserHandler(userService)
 	groupHandler := handlers.NewGroupHandler(groupService)
+	expenseHandler := handlers.NewExpenseHandler(expenseService)
 
 	auth := r.Group("/auth")
 	{
@@ -44,6 +47,7 @@ func SetupRoutes(db *gorm.DB) *gin.Engine {
 		api.POST("/groups/:groupId/addmember", groupHandler.AddMember)
 		api.GET("/groups", groupHandler.ListGroups)
 		api.GET("/groups/:groupId/members", groupHandler.ListMembers)
+		api.POST("/createexpense", expenseHandler.CreateExpense)
 	}
 	return r
 }
