@@ -36,6 +36,6 @@ func ConnectPostgres() (*gorm.DB, error) {
 }
 
 func InitDb(db *gorm.DB) error {
-	db.AutoMigrate(&models.User{}, &models.Group{}, &models.GroupMember{})
+	db.AutoMigrate(&models.User{}, &models.Group{}, &models.GroupMember{}, &models.Expense{}, &models.ExpenseSplit{})
 	return nil
 }
