@@ -48,6 +48,7 @@ func SetupRoutes(db *gorm.DB) *gin.Engine {
 		api.GET("/groups", groupHandler.ListGroups)
 		api.GET("/groups/:groupId/members", groupHandler.ListMembers)
 		api.POST("/createexpense", expenseHandler.CreateExpense)
+		api.GET("/groups/:groupId/expenses", expenseHandler.ListExpenses)
 	}
 	return r
 }

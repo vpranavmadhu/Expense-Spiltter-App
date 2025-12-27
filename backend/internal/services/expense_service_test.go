@@ -9,6 +9,9 @@ import (
 type mockExpenseRepo struct {
 	createErr error
 	splitErr  error
+
+	expenses    []models.Expense
+	expensesErr error
 }
 
 func (m *mockExpenseRepo) CreateExpense(expense *models.Expense) error {
@@ -18,6 +21,10 @@ func (m *mockExpenseRepo) CreateExpense(expense *models.Expense) error {
 
 func (m *mockExpenseRepo) CreateSplits(splits []models.ExpenseSplit) error {
 	return m.splitErr
+}
+
+func (m *mockExpenseRepo) GetExpensesByGroupID(groupID uint) ([]models.Expense, error) {
+	return m.expenses, m.createErr
 }
 
 func TestCreateExpense_Success(t *testing.T) {
@@ -44,4 +51,29 @@ func TestCreateExpense_Success(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
+}
+
+func TestListExpensesSuccess(t *testing.T) {
+
+	expenseRepo := &mockExpenseRepo{
+		expenses: []models.Expense{
+			{ID: 1, Title: "Dinner", Amount: 1000, PaidByID: 1},
+			{ID: 2, Title: "Taxi", Amount: 300, PaidByID: 2},
+		},
+	}
+
+	groupRepo := &mockGroupRepo{
+		requesterIsMember: true,
+	}
+
+	service := NewExpenseService(expenseRepo, groupRepo)
+
+	expenses, err := service.ListExpenses(1, 10)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(expenses) != 2 {
+		t.Fatalf("expected 2 expenses, got %d", len(expenses))
+	}
 }

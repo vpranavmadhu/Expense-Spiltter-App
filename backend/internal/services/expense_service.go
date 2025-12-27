@@ -9,6 +9,7 @@ import (
 
 type ExpenseService interface {
 	CreateExpense(payerID uint, req dto.CreateExpenseRequest) error
+	ListExpenses(requesterID, groupID uint) ([]models.Expense, error)
 }
 
 type expenseService struct {
@@ -22,7 +23,10 @@ func NewExpenseService(expenseRepo repository.ExpenseRepository, groupRepo repos
 
 func (s *expenseService) CreateExpense(payerID uint, req dto.CreateExpenseRequest) error {
 
-	isMember, _ := s.groupRepo.IsMember(req.GroupID, payerID)
+	isMember, err := s.groupRepo.IsMember(req.GroupID, payerID)
+	if err != nil {
+		return err
+	}
 	if !isMember {
 		return errors.New("not authorized")
 	}
@@ -56,4 +60,17 @@ func (s *expenseService) CreateExpense(payerID uint, req dto.CreateExpenseReques
 	}
 	return s.expenseRepo.CreateSplits(splits)
 
+}
+
+func (s *expenseService) ListExpenses(requesterID, groupID uint) ([]models.Expense, error) {
+
+	isMember, err := s.groupRepo.IsMember(groupID, requesterID)
+	if err != nil {
+		return nil, err
+	}
+	if !isMember {
+		return nil, errors.New("not authorized")
+	}
+
+	return s.expenseRepo.GetExpensesByGroupID(groupID)
 }
