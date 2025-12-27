@@ -99,3 +99,22 @@ func (h *ExpenseHandler) CalculateBalances(c *gin.Context) {
 
 	c.JSON(200, balances)
 }
+
+func (h *ExpenseHandler) MarkAsPaid(c *gin.Context) {
+
+	val, _ := c.Get("userID")
+	userID := val.(uint)
+
+	var req dto.MarkPaidRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.expenseService.MarkAsPaid(userID, req); err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{"message": "payment recorded"})
+}

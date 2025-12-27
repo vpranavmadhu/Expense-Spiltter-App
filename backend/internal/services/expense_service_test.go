@@ -33,6 +33,19 @@ func (m *mockExpenseRepo) GetSplitsByGroupID(groupID uint) ([]models.ExpenseSpli
 	return m.splits, nil
 }
 
+type mockSettlementRepo struct {
+	createErr error
+	payments  []models.SettlementPayment
+}
+
+func (m *mockSettlementRepo) Create(p *models.SettlementPayment) error {
+	return m.createErr
+}
+
+func (m *mockSettlementRepo) GetByGroupID(groupID uint) ([]models.SettlementPayment, error) {
+	return m.payments, nil
+}
+
 func TestCreateExpense_Success(t *testing.T) {
 
 	expenseRepo := &mockExpenseRepo{}
@@ -43,8 +56,9 @@ func TestCreateExpense_Success(t *testing.T) {
 			{ID: 2},
 		},
 	}
+	settlementRepo := &mockSettlementRepo{}
 
-	service := NewExpenseService(expenseRepo, groupRepo)
+	service := NewExpenseService(expenseRepo, groupRepo, settlementRepo)
 
 	req := dto.CreateExpenseRequest{
 		GroupID: 10,
@@ -72,7 +86,9 @@ func TestListExpensesSuccess(t *testing.T) {
 		requesterIsMember: true,
 	}
 
-	service := NewExpenseService(expenseRepo, groupRepo)
+	settlementRepo := &mockSettlementRepo{}
+
+	service := NewExpenseService(expenseRepo, groupRepo, settlementRepo)
 
 	expenses, err := service.ListExpenses(1, 10)
 	if err != nil {
@@ -98,7 +114,9 @@ func TestCalculateBalancesSuccess(t *testing.T) {
 		requesterIsMember: true,
 	}
 
-	service := NewExpenseService(expenseRepo, groupRepo)
+	settlementRepo := &mockSettlementRepo{}
+
+	service := NewExpenseService(expenseRepo, groupRepo, settlementRepo)
 
 	balances, err := service.CalculateBalances(1, 10)
 	if err != nil {
@@ -125,7 +143,9 @@ func TestCreateExpense_CustomSplitSuccess(t *testing.T) {
 		},
 	}
 
-	service := NewExpenseService(expenseRepo, groupRepo)
+	settlementRepo := &mockSettlementRepo{}
+
+	service := NewExpenseService(expenseRepo, groupRepo, settlementRepo)
 
 	req := dto.CreateExpenseRequest{
 		GroupID: 10,
@@ -153,7 +173,9 @@ func TestCreateExpense_CustomSplitInvalidSum(t *testing.T) {
 		},
 	}
 
-	service := NewExpenseService(expenseRepo, groupRepo)
+	settlementRepo := &mockSettlementRepo{}
+
+	service := NewExpenseService(expenseRepo, groupRepo, settlementRepo)
 
 	req := dto.CreateExpenseRequest{
 		GroupID: 10,
@@ -168,5 +190,100 @@ func TestCreateExpense_CustomSplitInvalidSum(t *testing.T) {
 	err := service.CreateExpense(1, req)
 	if err == nil {
 		t.Fatal("expected error for invalid split sum")
+	}
+}
+
+func TestCalculateBalances_WithSettlement(t *testing.T) {
+	expenseRepo := &mockExpenseRepo{
+		splits: []models.ExpenseSplitWithExpense{
+			{UserID: 1, Amount: 500, PaidByID: 1},
+			{UserID: 2, Amount: 500, PaidByID: 1},
+		},
+	}
+
+	settlementRepo := &mockSettlementRepo{
+		payments: []models.SettlementPayment{
+			{
+				GroupID:    10,
+				FromUserID: 2,
+				ToUserID:   1,
+				Amount:     300,
+			},
+		},
+	}
+
+	groupRepo := &mockGroupRepo{
+		requesterIsMember: true,
+	}
+
+	service := NewExpenseService(
+		expenseRepo,
+		groupRepo,
+		settlementRepo,
+	)
+
+	balances, err := service.CalculateBalances(1, 10)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if balances[1] != 200 {
+		t.Fatalf("expected user 1 balance 200, got %v", balances[1])
+	}
+
+	if balances[2] != -200 {
+		t.Fatalf("expected user 2 balance -200, got %v", balances[2])
+	}
+}
+
+func TestMarkAsPaid_Success(t *testing.T) {
+	expenseRepo := &mockExpenseRepo{}
+	settlementRepo := &mockSettlementRepo{}
+
+	groupRepo := &mockGroupRepo{
+		requesterIsMember: true,
+	}
+
+	service := NewExpenseService(
+		expenseRepo,
+		groupRepo,
+		settlementRepo,
+	)
+
+	req := dto.MarkPaidRequest{
+		GroupID: 10,
+		ToUser:  2,
+		Amount:  300,
+	}
+
+	err := service.MarkAsPaid(1, req)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+}
+
+func TestMarkAsPaid_NotMember(t *testing.T) {
+	expenseRepo := &mockExpenseRepo{}
+	settlementRepo := &mockSettlementRepo{}
+
+	groupRepo := &mockGroupRepo{
+		requesterIsMember: false,
+	}
+
+	service := NewExpenseService(
+		expenseRepo,
+		groupRepo,
+		settlementRepo,
+	)
+
+	req := dto.MarkPaidRequest{
+		GroupID: 10,
+		ToUser:  2,
+		Amount:  300,
+	}
+
+	err := service.MarkAsPaid(1, req)
+	if err == nil {
+		t.Fatal("expected authorization error")
 	}
 }

@@ -31,10 +31,16 @@ func (m *mockGroupRepo) AddMember(member *models.GroupMember) error {
 }
 
 func (m *mockGroupRepo) IsMember(groupID, userID uint) (bool, error) {
-	if userID == 1 {
-		return m.requesterIsMember, m.isMemberErr
+	if m.members != nil {
+		for _, u := range m.members {
+			if u.ID == userID {
+				return true, m.isMemberErr
+			}
+		}
+		return false, m.isMemberErr
 	}
-	return m.userAlreadyMember, m.isMemberErr
+
+	return m.requesterIsMember, m.isMemberErr
 }
 
 func (m *mockGroupRepo) GetGroupsByUserID(userID uint) ([]models.Group, error) {
@@ -75,8 +81,9 @@ func TestCreateGroupEmptyName(t *testing.T) {
 
 func TestAddMemberByEmail_Success(t *testing.T) {
 	groupRepo := &mockGroupRepo{
-		requesterIsMember: true,
-		userAlreadyMember: false,
+		members: []models.User{
+			{ID: 1},
+		},
 	}
 
 	userRepo := &mockUserRepo{

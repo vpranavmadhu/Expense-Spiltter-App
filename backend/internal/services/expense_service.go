@@ -12,15 +12,17 @@ type ExpenseService interface {
 	CreateExpense(payerID uint, req dto.CreateExpenseRequest) error
 	ListExpenses(requesterID, groupID uint) ([]models.Expense, error)
 	CalculateBalances(requesterID, groupID uint) (map[uint]float64, error)
+	MarkAsPaid(requesterID uint, req dto.MarkPaidRequest) error
 }
 
 type expenseService struct {
-	expenseRepo repository.ExpenseRepository
-	groupRepo   repository.GroupRepository
+	expenseRepo    repository.ExpenseRepository
+	groupRepo      repository.GroupRepository
+	settlementRepo repository.SettlementRepository
 }
 
-func NewExpenseService(expenseRepo repository.ExpenseRepository, groupRepo repository.GroupRepository) ExpenseService {
-	return &expenseService{expenseRepo: expenseRepo, groupRepo: groupRepo}
+func NewExpenseService(expenseRepo repository.ExpenseRepository, groupRepo repository.GroupRepository, settlementRepo repository.SettlementRepository) ExpenseService {
+	return &expenseService{expenseRepo: expenseRepo, groupRepo: groupRepo, settlementRepo: settlementRepo}
 }
 
 func (s *expenseService) CreateExpense(payerID uint, req dto.CreateExpenseRequest) error {
@@ -68,7 +70,7 @@ func (s *expenseService) CreateExpense(payerID uint, req dto.CreateExpenseReques
 			splits = append(splits, models.ExpenseSplit{
 				ExpenseID: expense.ID,
 				UserID:    s.UserID,
-				Amount:    expense.Amount,
+				Amount:    s.Amount,
 			})
 		}
 
@@ -80,7 +82,7 @@ func (s *expenseService) CreateExpense(payerID uint, req dto.CreateExpenseReques
 		//equal split
 		splitAmount := req.Amount / float64(len(members))
 
-		splits := make([]models.ExpenseSplit, 0)
+		splits = make([]models.ExpenseSplit, 0)
 		for _, m := range members {
 			splits = append(splits, models.ExpenseSplit{
 				ExpenseID: expense.ID,
@@ -129,5 +131,43 @@ func (s *expenseService) CalculateBalances(requesterID, groupID uint) (map[uint]
 		balances[sp.PaidByID] += sp.Amount
 	}
 
+	payments, err := s.settlementRepo.GetByGroupID(groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, p := range payments {
+		balances[p.FromUserID] += p.Amount
+		balances[p.ToUserID] -= p.Amount
+	}
+
 	return balances, nil
+}
+
+func (s *expenseService) MarkAsPaid(requesterID uint, req dto.MarkPaidRequest) error {
+	isMember, err := s.groupRepo.IsMember(req.GroupID, requesterID)
+	if err != nil {
+		return err
+	}
+	if !isMember {
+		return errors.New("not authorized")
+	}
+
+	isRecieverMember, err := s.groupRepo.IsMember(req.GroupID, req.ToUser)
+	if err != nil {
+		return err
+	}
+	if !isRecieverMember {
+		return errors.New("reciever not in group")
+	}
+
+	payment := models.SettlementPayment{
+		GroupID:    req.GroupID,
+		FromUserID: requesterID,
+		ToUserID:   req.ToUser,
+		Amount:     req.Amount,
+	}
+
+	return s.settlementRepo.Create(&payment)
+
 }
