@@ -10,6 +10,7 @@ import (
 type ExpenseService interface {
 	CreateExpense(payerID uint, req dto.CreateExpenseRequest) error
 	ListExpenses(requesterID, groupID uint) ([]models.Expense, error)
+	CalculateBalances(requesterID, groupID uint) (map[uint]float64, error)
 }
 
 type expenseService struct {
@@ -73,4 +74,29 @@ func (s *expenseService) ListExpenses(requesterID, groupID uint) ([]models.Expen
 	}
 
 	return s.expenseRepo.GetExpensesByGroupID(groupID)
+}
+
+func (s *expenseService) CalculateBalances(requesterID, groupID uint) (map[uint]float64, error) {
+
+	isMember, err := s.groupRepo.IsMember(groupID, requesterID)
+	if err != nil {
+		return nil, err
+	}
+	if !isMember {
+		return nil, err
+	}
+
+	splits, err := s.expenseRepo.GetSplitsByGroupID(groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	balances := make(map[uint]float64)
+
+	for _, sp := range splits {
+		balances[sp.UserID] -= sp.Amount //user owes
+		balances[sp.PaidByID] += sp.Amount
+	}
+
+	return balances, nil
 }

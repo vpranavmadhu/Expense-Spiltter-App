@@ -10,6 +10,7 @@ type ExpenseRepository interface {
 	CreateExpense(expense *models.Expense) error
 	CreateSplits(splits []models.ExpenseSplit) error
 	GetExpensesByGroupID(groupID uint) ([]models.Expense, error)
+	GetSplitsByGroupID(groupID uint) ([]models.ExpenseSplitWithExpense, error)
 }
 
 type expenseRepository struct {
@@ -32,4 +33,21 @@ func (r *expenseRepository) GetExpensesByGroupID(groupID uint) ([]models.Expense
 	var expenses []models.Expense
 	err := r.db.Where("group_id =?", groupID).Order("created_at DESC").Find(&expenses).Error
 	return expenses, err
+}
+
+func (r *expenseRepository) GetSplitsByGroupID(groupID uint) ([]models.ExpenseSplitWithExpense, error) {
+	var result []models.ExpenseSplitWithExpense
+
+	err := r.db.Raw(`
+		SELECT 
+			es.user_id,
+			es.amount,
+			e.paid_by_id
+		FROM expense_splits es
+		JOIN expenses e ON e.id = es.expense_id
+		WHERE e.group_id = ?
+	`, groupID).Scan(&result).Error
+
+	return result, err
+
 }

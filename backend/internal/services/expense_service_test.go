@@ -12,6 +12,8 @@ type mockExpenseRepo struct {
 
 	expenses    []models.Expense
 	expensesErr error
+
+	splits []models.ExpenseSplitWithExpense
 }
 
 func (m *mockExpenseRepo) CreateExpense(expense *models.Expense) error {
@@ -25,6 +27,10 @@ func (m *mockExpenseRepo) CreateSplits(splits []models.ExpenseSplit) error {
 
 func (m *mockExpenseRepo) GetExpensesByGroupID(groupID uint) ([]models.Expense, error) {
 	return m.expenses, m.createErr
+}
+
+func (m *mockExpenseRepo) GetSplitsByGroupID(groupID uint) ([]models.ExpenseSplitWithExpense, error) {
+	return m.splits, nil
 }
 
 func TestCreateExpense_Success(t *testing.T) {
@@ -76,4 +82,35 @@ func TestListExpensesSuccess(t *testing.T) {
 	if len(expenses) != 2 {
 		t.Fatalf("expected 2 expenses, got %d", len(expenses))
 	}
+}
+
+func TestCalculateBalancesSuccess(t *testing.T) {
+	expenseRepo := &mockExpenseRepo{
+		splits: []models.ExpenseSplitWithExpense{
+			{UserID: 1, Amount: 500, PaidByID: 1},
+			{UserID: 2, Amount: 500, PaidByID: 1},
+			{UserID: 1, Amount: 200, PaidByID: 2},
+			{UserID: 2, Amount: 200, PaidByID: 2},
+		},
+	}
+
+	groupRepo := &mockGroupRepo{
+		requesterIsMember: true,
+	}
+
+	service := NewExpenseService(expenseRepo, groupRepo)
+
+	balances, err := service.CalculateBalances(1, 10)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if balances[1] != 300 {
+		t.Fatalf("expected user 1 balance 300, got %v", balances[1])
+	}
+
+	if balances[2] != -300 {
+		t.Fatalf("expected user 2 balance -300, got %v", balances[2])
+	}
+
 }
