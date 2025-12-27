@@ -5,6 +5,7 @@ import (
 	"esapp/internal/dto"
 	"esapp/internal/repository"
 	"esapp/models"
+	"math"
 )
 
 type ExpenseService interface {
@@ -48,17 +49,47 @@ func (s *expenseService) CreateExpense(payerID uint, req dto.CreateExpenseReques
 		return err
 	}
 
-	//equal split
-	splitAmount := req.Amount / float64(len(members))
+	var splits []models.ExpenseSplit
 
-	splits := make([]models.ExpenseSplit, 0)
-	for _, m := range members {
-		splits = append(splits, models.ExpenseSplit{
-			ExpenseID: expense.ID,
-			UserID:    m.ID,
-			Amount:    splitAmount,
-		})
+	if len(req.Splits) > 0 {
+		total := 0.0
+		memberSet := make(map[uint]bool)
+		for _, m := range members {
+			memberSet[m.ID] = true
+		}
+
+		for _, s := range req.Splits {
+			if !memberSet[s.UserID] {
+				return errors.New("Split user not in group")
+			}
+
+			total += s.Amount
+
+			splits = append(splits, models.ExpenseSplit{
+				ExpenseID: expense.ID,
+				UserID:    s.UserID,
+				Amount:    expense.Amount,
+			})
+		}
+
+		if math.Abs(total-req.Amount) > 0.01 {
+			return errors.New("splits amount do not match total")
+		}
+
+	} else {
+		//equal split
+		splitAmount := req.Amount / float64(len(members))
+
+		splits := make([]models.ExpenseSplit, 0)
+		for _, m := range members {
+			splits = append(splits, models.ExpenseSplit{
+				ExpenseID: expense.ID,
+				UserID:    m.ID,
+				Amount:    splitAmount,
+			})
+		}
 	}
+
 	return s.expenseRepo.CreateSplits(splits)
 
 }

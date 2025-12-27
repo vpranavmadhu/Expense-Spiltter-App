@@ -114,3 +114,59 @@ func TestCalculateBalancesSuccess(t *testing.T) {
 	}
 
 }
+
+func TestCreateExpense_CustomSplitSuccess(t *testing.T) {
+	expenseRepo := &mockExpenseRepo{}
+	groupRepo := &mockGroupRepo{
+		requesterIsMember: true,
+		members: []models.User{
+			{ID: 1},
+			{ID: 2},
+		},
+	}
+
+	service := NewExpenseService(expenseRepo, groupRepo)
+
+	req := dto.CreateExpenseRequest{
+		GroupID: 10,
+		Title:   "Dinner",
+		Amount:  1000,
+		Splits: []dto.SplitInput{
+			{UserID: 1, Amount: 300},
+			{UserID: 2, Amount: 700},
+		},
+	}
+
+	err := service.CreateExpense(1, req)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+}
+
+func TestCreateExpense_CustomSplitInvalidSum(t *testing.T) {
+	expenseRepo := &mockExpenseRepo{}
+	groupRepo := &mockGroupRepo{
+		requesterIsMember: true,
+		members: []models.User{
+			{ID: 1},
+			{ID: 2},
+		},
+	}
+
+	service := NewExpenseService(expenseRepo, groupRepo)
+
+	req := dto.CreateExpenseRequest{
+		GroupID: 10,
+		Title:   "Dinner",
+		Amount:  1000,
+		Splits: []dto.SplitInput{
+			{UserID: 1, Amount: 500},
+			{UserID: 2, Amount: 400},
+		},
+	}
+
+	err := service.CreateExpense(1, req)
+	if err == nil {
+		t.Fatal("expected error for invalid split sum")
+	}
+}
