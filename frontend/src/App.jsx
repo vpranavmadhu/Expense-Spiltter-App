@@ -1,16 +1,27 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter} from "react-router-dom";
+import { useEffect, useState } from "react";
+import api from "./api";
+import { Router } from "./Router";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api
+      .get("/api/me")
+      .then((res) => setUser(res.data))
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div className="p-4">Loading...</div>;
 
   return (
-    <>
-      <h1 className='text-6xl text-blue-300'> EXPENSE SPLITTER FRONTEND</h1>
-    </>
-  )
+    <BrowserRouter>
+      <Router user={user} setUser={setUser} />
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
