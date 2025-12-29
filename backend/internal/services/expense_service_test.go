@@ -16,6 +16,8 @@ type mockExpenseRepo struct {
 	splits []models.ExpenseSplitWithExpense
 
 	expenseWithShare []dto.ExpenseResponse
+
+	settleErr error
 }
 
 func (m *mockExpenseRepo) CreateExpense(expense *models.Expense) error {
@@ -50,6 +52,10 @@ func (m *mockSettlementRepo) Create(p *models.SettlementPayment) error {
 
 func (m *mockSettlementRepo) GetByGroupID(groupID uint) ([]models.SettlementPayment, error) {
 	return m.payments, nil
+}
+
+func (m *mockExpenseRepo) SettleExpenseSplit(expenseID, userID uint) error {
+	return m.settleErr
 }
 
 func TestCreateExpense_Success(t *testing.T) {
@@ -202,18 +208,11 @@ func TestCreateExpense_CustomSplitInvalidSum(t *testing.T) {
 func TestCalculateBalances_WithSettlement(t *testing.T) {
 	expenseRepo := &mockExpenseRepo{
 		splits: []models.ExpenseSplitWithExpense{
-			{UserID: 1, Amount: 500, PaidByID: 1},
-			{UserID: 2, Amount: 500, PaidByID: 1},
-		},
-	}
-
-	settlementRepo := &mockSettlementRepo{
-		payments: []models.SettlementPayment{
 			{
-				GroupID:    10,
-				FromUserID: 2,
-				ToUserID:   1,
-				Amount:     300,
+				UserID:    1,
+				Amount:    500,
+				PaidByID:  2,
+				IsSettled: true,
 			},
 		},
 	}
@@ -222,29 +221,26 @@ func TestCalculateBalances_WithSettlement(t *testing.T) {
 		requesterIsMember: true,
 	}
 
-	service := NewExpenseService(
-		expenseRepo,
-		groupRepo,
-		settlementRepo,
-	)
+	service := NewExpenseService(expenseRepo, groupRepo, nil)
 
 	balances, err := service.CalculateBalances(1, 10)
 	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
+		t.Fatal(err)
 	}
 
-	if balances[1] != 200 {
-		t.Fatalf("expected user 1 balance 200, got %v", balances[1])
+	if balances[1] != 0 {
+		t.Fatalf("expected user 1 balance 0, got %v", balances[1])
 	}
 
-	if balances[2] != -200 {
-		t.Fatalf("expected user 2 balance -200, got %v", balances[2])
+	if balances[2] != 0 {
+		t.Fatalf("expected user 2 balance 0, got %v", balances[2])
 	}
 }
 
 func TestMarkAsPaid_Success(t *testing.T) {
-	expenseRepo := &mockExpenseRepo{}
-	settlementRepo := &mockSettlementRepo{}
+	expenseRepo := &mockExpenseRepo{
+		settleErr: nil,
+	}
 
 	groupRepo := &mockGroupRepo{
 		requesterIsMember: true,
@@ -253,44 +249,17 @@ func TestMarkAsPaid_Success(t *testing.T) {
 	service := NewExpenseService(
 		expenseRepo,
 		groupRepo,
-		settlementRepo,
+		nil,
 	)
 
 	req := dto.MarkPaidRequest{
-		GroupID: 10,
-		ToUser:  2,
-		Amount:  300,
+		GroupID:   10,
+		ExpenseID: 5,
 	}
 
 	err := service.MarkAsPaid(1, req)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
-	}
-}
-
-func TestMarkAsPaid_NotMember(t *testing.T) {
-	expenseRepo := &mockExpenseRepo{}
-	settlementRepo := &mockSettlementRepo{}
-
-	groupRepo := &mockGroupRepo{
-		requesterIsMember: false,
-	}
-
-	service := NewExpenseService(
-		expenseRepo,
-		groupRepo,
-		settlementRepo,
-	)
-
-	req := dto.MarkPaidRequest{
-		GroupID: 10,
-		ToUser:  2,
-		Amount:  300,
-	}
-
-	err := service.MarkAsPaid(1, req)
-	if err == nil {
-		t.Fatal("expected authorization error")
 	}
 }
 

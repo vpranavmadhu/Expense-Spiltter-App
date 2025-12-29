@@ -19,4 +19,5 @@ type ExpenseResponse struct {
 	PaidByID   uint    `json:"paidById"`
 	PaidByName string  `json:"paidByName"`
 	MyShare    float64 `json:"myShare"`
+	IsSettled  bool    `json:"isSettled"`
 }

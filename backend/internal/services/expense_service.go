@@ -117,7 +117,7 @@ func (s *expenseService) CalculateBalances(requesterID, groupID uint) (map[uint]
 		return nil, err
 	}
 	if !isMember {
-		return nil, err
+		return nil, errors.New("not authorized")
 	}
 
 	splits, err := s.expenseRepo.GetSplitsByGroupID(groupID)
@@ -128,18 +128,14 @@ func (s *expenseService) CalculateBalances(requesterID, groupID uint) (map[uint]
 	balances := make(map[uint]float64)
 
 	for _, sp := range splits {
-		balances[sp.UserID] -= sp.Amount //user owes
+
+		if sp.IsSettled {
+			continue
+		}
+
+		balances[sp.UserID] -= sp.Amount
+
 		balances[sp.PaidByID] += sp.Amount
-	}
-
-	payments, err := s.settlementRepo.GetByGroupID(groupID)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, p := range payments {
-		balances[p.FromUserID] += p.Amount
-		balances[p.ToUserID] -= p.Amount
 	}
 
 	return balances, nil
@@ -154,22 +150,7 @@ func (s *expenseService) MarkAsPaid(requesterID uint, req dto.MarkPaidRequest) e
 		return errors.New("not authorized")
 	}
 
-	isRecieverMember, err := s.groupRepo.IsMember(req.GroupID, req.ToUser)
-	if err != nil {
-		return err
-	}
-	if !isRecieverMember {
-		return errors.New("reciever not in group")
-	}
-
-	payment := models.SettlementPayment{
-		GroupID:    req.GroupID,
-		FromUserID: requesterID,
-		ToUserID:   req.ToUser,
-		Amount:     req.Amount,
-	}
-
-	return s.settlementRepo.Create(&payment)
+	return s.expenseRepo.SettleExpenseSplit(req.ExpenseID, requesterID)
 
 }
 
