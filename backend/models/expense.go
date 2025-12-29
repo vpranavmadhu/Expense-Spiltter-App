@@ -17,4 +17,6 @@ type ExpenseSplit struct {
 	ExpenseID uint    `gorm:"not null;index"`
 	UserID    uint    `gorm:"not null"`
 	Amount    float64 `gorm:"not null"`
+
+	IsSettled bool `gorm:"default:false"`
 }
