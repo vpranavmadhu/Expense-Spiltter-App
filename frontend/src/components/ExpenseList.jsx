@@ -1,26 +1,16 @@
 import ExpenseCard from "./ExpenseCard"
 
-export default function ExpenseList({
-  expenses,
-  balances,
-  currentUserId,
-  onSettled
-}) {
-  if (!expenses.length) {
-    return (
-      <p className="text-gray-500 text-sm">
-        No expenses yet
-      </p>
-    )
+export default function ExpenseList({ expenses, currentUserId, onSettled }) {
+  if (expenses == null) {
+    return <p className="text-gray-500">No expenses yet</p>
   }
 
   return (
-    <div className="space-y-2">
-      {expenses.map((expense) => (
+    <div className="space-y-4">
+      {expenses.map(exp => (
         <ExpenseCard
-          key={expense.id}
-          expense={expense}
-          balances={balances}
+          key={exp.id}
+          expense={exp}
           currentUserId={currentUserId}
           onSettled={onSettled}
         />
@@ -28,4 +18,3 @@ export default function ExpenseList({
     </div>
   )
 }
-

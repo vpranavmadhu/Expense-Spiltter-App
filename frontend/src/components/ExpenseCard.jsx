@@ -15,15 +15,17 @@ export default function ExpenseCard({
     label = `You paid ₹${expense.amount}`
     color = "text-green-600"
     bg = "bg-green-50"
-  } else if (myShare > 0) {
+  } 
+  else if (expense.isSettled) {
+    label = "Settled"
+    color = "text-gray-500"
+    bg = "bg-gray-50"
+  }
+  else if (myShare > 0) {
     label = `You owe ₹${myShare}`
     color = "text-red-600"
     bg = "bg-red-50"
     showPayButton = true
-  } else {
-    label = "Settled"
-    color = "text-gray-500"
-    bg = "bg-gray-50"
   }
 
   return (

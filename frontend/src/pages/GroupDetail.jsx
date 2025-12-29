@@ -14,8 +14,8 @@ export default function GroupDetail() {
   const [members, setMembers] = useState([])
   const [expenses, setExpenses] = useState([])
   const [balances, setBalances] = useState({})
-
   const [showAddExpense, setShowAddExpense] = useState(false)
+
   const fetchMe = async () => {
     const res = await axios.get(
       "http://localhost:8080/api/me",
@@ -56,6 +56,20 @@ export default function GroupDetail() {
     setBalances(res.data)
   }
 
+  const handleSettle = async (expense) => {
+    await axios.post(
+      "http://localhost:8080/api/settlements",
+      {
+        group_id: Number(groupId),
+        expense_id: expense.id,
+      },
+      { withCredentials: true }
+    )
+
+    await fetchExpenses()
+    await fetchBalances()
+  }
+
   useEffect(() => {
     if (!groupId) return
 
@@ -74,19 +88,17 @@ export default function GroupDetail() {
     )
   }
 
-  console.log(expenses);
-  
-
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
 
       <h1 className="text-3xl font-bold">{group.name}</h1>
 
+      {/* MEMBERS */}
       <div className="bg-white shadow rounded p-4">
         <h2 className="text-lg font-semibold mb-4">Members</h2>
 
         <div className="flex flex-wrap gap-2 mb-4">
-          {members.map((m) => (
+          {members.map(m => (
             <span
               key={m.id}
               className="px-4 py-1 bg-gray-100 rounded-full text-sm font-medium"
@@ -99,6 +111,7 @@ export default function GroupDetail() {
         <AddMember groupId={groupId} onAdded={fetchMembers} />
       </div>
 
+      {/* ADD EXPENSE */}
       <button
         onClick={() => setShowAddExpense(true)}
         className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
@@ -106,16 +119,14 @@ export default function GroupDetail() {
         + Add Expense
       </button>
 
+      {/* EXPENSES */}
       <div className="bg-white shadow rounded p-4">
         <h2 className="text-lg font-semibold mb-3">Expenses</h2>
+
         <ExpenseList
           expenses={expenses}
-          balances={balances}
           currentUserId={user.id}
-          onSettled={() => {
-            fetchExpenses()
-            fetchBalances()
-          }}
+          onSettled={handleSettle}
         />
       </div>
 
