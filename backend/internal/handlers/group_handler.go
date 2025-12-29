@@ -101,3 +101,19 @@ func (h *GroupHandler) ListMembers(c *gin.Context) {
 
 	c.JSON(200, response)
 }
+
+func (h *GroupHandler) GetGroupByID(c *gin.Context) {
+	val, _ := c.Get("userID")
+	userID := val.(uint)
+
+	groupIDParam := c.Param("groupId")
+	groupID, _ := strconv.ParseUint(groupIDParam, 10, 64)
+
+	group, err := h.groupService.GetGroupByID(uint(groupID), userID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "group not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, group)
+}

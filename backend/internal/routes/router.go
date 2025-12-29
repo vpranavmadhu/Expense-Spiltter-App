@@ -45,6 +45,7 @@ func SetupRoutes(db *gorm.DB) *gin.Engine {
 		api.Use(middleware.AuthMiddleware())
 		api.GET("/me", userHandler.GetMe)
 		api.POST("/creategroup", groupHandler.CreateGroup)
+		api.GET("/groups/:groupId", groupHandler.GetGroupByID)
 		api.POST("/groups/:groupId/addmember", groupHandler.AddMember)
 		api.GET("/groups", groupHandler.ListGroups)
 		api.GET("/groups/:groupId/members", groupHandler.ListMembers)

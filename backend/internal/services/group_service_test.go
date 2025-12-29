@@ -19,6 +19,9 @@ type mockGroupRepo struct {
 
 	members    []models.User
 	membersErr error
+
+	group    *models.Group
+	groupErr error
 }
 
 func (m *mockGroupRepo) CreateGroup(group *models.Group) error {
@@ -49,6 +52,10 @@ func (m *mockGroupRepo) GetGroupsByUserID(userID uint) ([]models.Group, error) {
 
 func (m *mockGroupRepo) GetMembersByGroupID(groupID uint) ([]models.User, error) {
 	return m.members, m.membersErr
+}
+
+func (m *mockGroupRepo) FindByID(groupID uint) (*models.Group, error) {
+	return m.group, m.groupErr
 }
 
 func TestCreatGroupSuccess(t *testing.T) {
@@ -144,5 +151,27 @@ func TestListMembersSuccess(t *testing.T) {
 
 	if len(members) != 2 {
 		t.Fatalf("expected 2 members, got %d", len(members))
+	}
+}
+
+func TestGetGroupByID_Success(t *testing.T) {
+	groupRepo := &mockGroupRepo{
+		requesterIsMember: true,
+		group: &models.Group{
+			ID:   1,
+			Name: "Goa Trip",
+		},
+	}
+
+	userRepo := &mockUserRepo{}
+	service := NewGroupService(groupRepo, userRepo)
+
+	group, err := service.GetGroupByID(1, 1)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if group.Name != "Goa Trip" {
+		t.Fatalf("expected group Goa Trip, got %s", group.Name)
 	}
 }

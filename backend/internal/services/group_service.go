@@ -12,6 +12,7 @@ type GroupService interface {
 	AddMemberByEmail(requesterID uint, groupID uint, email string) error
 	ListGroups(userID uint) ([]models.Group, error)
 	ListMembers(requesterID, groupID uint) ([]models.User, error)
+	GetGroupByID(groupID, userID uint) (*models.Group, error)
 }
 
 type groupService struct {
@@ -43,6 +44,15 @@ func (s *groupService) CreateGroup(userID uint, req dto.CreateGroupRequest) erro
 	}
 
 	return s.groupRepo.AddMember(member)
+}
+
+func (s *groupService) GetGroupByID(groupID, userID uint) (*models.Group, error) {
+	isMember, err := s.groupRepo.IsMember(groupID, userID)
+	if err != nil || !isMember {
+		return nil, errors.New("not authorized")
+	}
+
+	return s.groupRepo.FindByID(groupID)
 }
 
 func (s *groupService) AddMemberByEmail(requesterID uint, groupID uint, email string) error {

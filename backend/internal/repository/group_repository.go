@@ -12,6 +12,7 @@ type GroupRepository interface {
 	IsMember(groupID, userID uint) (bool, error)
 	GetGroupsByUserID(userID uint) ([]models.Group, error)
 	GetMembersByGroupID(groupID uint) ([]models.User, error)
+	FindByID(groupID uint) (*models.Group, error)
 }
 
 type groupRepository struct {
@@ -55,4 +56,12 @@ func (r *groupRepository) GetMembersByGroupID(groupID uint) ([]models.User, erro
 		Find(&users).Error
 
 	return users, err
+}
+
+func (r *groupRepository) FindByID(groupID uint) (*models.Group, error) {
+	var group models.Group
+	if err := r.db.First(&group, groupID).Error; err != nil {
+		return nil, err
+	}
+	return &group, nil
 }
