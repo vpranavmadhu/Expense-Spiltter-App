@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"esapp/internal/dto"
 	"esapp/models"
 
 	"gorm.io/gorm"
@@ -11,6 +12,7 @@ type ExpenseRepository interface {
 	CreateSplits(splits []models.ExpenseSplit) error
 	GetExpensesByGroupID(groupID uint) ([]models.Expense, error)
 	GetSplitsByGroupID(groupID uint) ([]models.ExpenseSplitWithExpense, error)
+	GetExpensesWithMyShare(groupID uint, userID uint) ([]dto.ExpenseResponse, error)
 }
 
 type expenseRepository struct {
@@ -50,4 +52,25 @@ func (r *expenseRepository) GetSplitsByGroupID(groupID uint) ([]models.ExpenseSp
 
 	return result, err
 
+}
+
+func (r *expenseRepository) GetExpensesWithMyShare(groupID, userID uint) ([]dto.ExpenseResponse, error) {
+	var results []dto.ExpenseResponse
+
+	err := r.db.Raw(`
+		SELECT 
+			e.id,
+			e.title,
+			e.amount,
+			e.paid_by_id AS paid_by_id,
+			u.username AS paid_by_name,
+			COALESCE(es.amount, 0) AS my_share
+		FROM expenses e
+		JOIN users u ON u.id = e.paid_by_id
+		LEFT JOIN expense_splits es 
+			ON es.expense_id = e.id AND es.user_id = ?
+		WHERE e.group_id = ?
+	`, userID, groupID).Scan(&results).Error
+
+	return results, err
 }

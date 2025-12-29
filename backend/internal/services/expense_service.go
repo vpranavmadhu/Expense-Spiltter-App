@@ -13,6 +13,7 @@ type ExpenseService interface {
 	ListExpenses(requesterID, groupID uint) ([]models.Expense, error)
 	CalculateBalances(requesterID, groupID uint) (map[uint]float64, error)
 	MarkAsPaid(requesterID uint, req dto.MarkPaidRequest) error
+	ListExpensesWithShare(groupID, requesterID uint) ([]dto.ExpenseResponse, error)
 }
 
 type expenseService struct {
@@ -170,4 +171,17 @@ func (s *expenseService) MarkAsPaid(requesterID uint, req dto.MarkPaidRequest) e
 
 	return s.settlementRepo.Create(&payment)
 
+}
+
+func (s *expenseService) ListExpensesWithShare(groupID, requesterID uint) ([]dto.ExpenseResponse, error) {
+
+	isMember, err := s.groupRepo.IsMember(groupID, requesterID)
+	if err != nil {
+		return nil, err
+	}
+	if !isMember {
+		return nil, errors.New("not authorized")
+	}
+
+	return s.expenseRepo.GetExpensesWithMyShare(groupID, requesterID)
 }

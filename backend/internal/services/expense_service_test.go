@@ -14,6 +14,8 @@ type mockExpenseRepo struct {
 	expensesErr error
 
 	splits []models.ExpenseSplitWithExpense
+
+	expenseWithShare []dto.ExpenseResponse
 }
 
 func (m *mockExpenseRepo) CreateExpense(expense *models.Expense) error {
@@ -31,6 +33,10 @@ func (m *mockExpenseRepo) GetExpensesByGroupID(groupID uint) ([]models.Expense, 
 
 func (m *mockExpenseRepo) GetSplitsByGroupID(groupID uint) ([]models.ExpenseSplitWithExpense, error) {
 	return m.splits, nil
+}
+
+func (m *mockExpenseRepo) GetExpensesWithMyShare(groupID uint, userID uint) ([]dto.ExpenseResponse, error) {
+	return m.expenseWithShare, nil
 }
 
 type mockSettlementRepo struct {
@@ -285,5 +291,51 @@ func TestMarkAsPaid_NotMember(t *testing.T) {
 	err := service.MarkAsPaid(1, req)
 	if err == nil {
 		t.Fatal("expected authorization error")
+	}
+}
+
+func TestListExpensesWithShare_Success(t *testing.T) {
+
+	expenseRepo := &mockExpenseRepo{
+		expenseWithShare: []dto.ExpenseResponse{
+			{
+				ID:       1,
+				Title:    "Dinner",
+				Amount:   1000,
+				PaidByID: 2,
+				MyShare:  300,
+			},
+			{
+				ID:       2,
+				Title:    "Taxi",
+				Amount:   400,
+				PaidByID: 1,
+				MyShare:  0,
+			},
+		},
+	}
+
+	groupRepo := &mockGroupRepo{
+		requesterIsMember: true,
+	}
+
+	service := NewExpenseService(
+		expenseRepo,
+		groupRepo,
+		nil,
+	)
+
+	expenses, err := service.ListExpensesWithShare(1, 10)
+
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(expenses) != 2 {
+		t.Fatalf("expected 2 expenses, got %d", len(expenses))
+	}
+
+	if expenses[0].MyShare != 300 {
+		t.Fatalf("expected myShare 300, got %v", expenses[0].MyShare)
 	}
 }

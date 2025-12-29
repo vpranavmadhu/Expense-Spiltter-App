@@ -11,3 +11,12 @@ type CreateExpenseRequest struct {
 	Amount  float64      `json:"amount" binding:"required,gt=0"`
 	Splits  []SplitInput `json:"splits"`
 }
+
+type ExpenseResponse struct {
+	ID         uint    `json:"id"`
+	Title      string  `json:"title"`
+	Amount     float64 `json:"amount"`
+	PaidByID   uint    `json:"paidById"`
+	PaidByName string  `json:"paidByName"`
+	MyShare    float64 `json:"myShare"`
+}
