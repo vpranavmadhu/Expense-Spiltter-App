@@ -38,6 +38,22 @@ export const Router = ({ user, setUser }) => {
           )
         }
       />
+
+      <Route
+        path="/groups/:groupId"
+        element={
+          user ? (
+            <>
+              <Navbar user={user} onLogout={handleLogout} />
+              <GroupDetail />
+            </>
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+
+      <Route path="*" element={<Navigate to="/groups" />} />
     </Routes>
   );
 }
