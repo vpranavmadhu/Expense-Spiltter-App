@@ -13,11 +13,13 @@ type CreateExpenseRequest struct {
 }
 
 type ExpenseResponse struct {
-	ID         uint    `json:"id"`
-	Title      string  `json:"title"`
-	Amount     float64 `json:"amount"`
-	PaidByID   uint    `json:"paidById"`
-	PaidByName string  `json:"paidByName"`
-	MyShare    float64 `json:"myShare"`
-	IsSettled  bool    `json:"isSettled"`
+	ID            uint    `json:"id"`
+	Title         string  `json:"title"`
+	Amount        float64 `json:"amount"`
+	PaidByID      uint    `json:"paidById"`
+	PaidByName    string  `json:"paidByName"`
+	MyShare       float64 `json:"myShare"`
+	IsSettled     bool    `json:"isSettled"`
+	SplitCount    int     `json:"splitCount"`
+	TotalOwedToMe float64 `json:"totalOwedToMe"`
 }

@@ -64,18 +64,44 @@ func (r *expenseRepository) GetExpensesWithMyShare(groupID uint, userID uint) ([
 			e.id,
 			e.title,
 			e.amount,
-			e.paid_by_id,
+			e.paid_by_id AS paid_by_id,
 			u.username AS paid_by_name,
+
 			s.amount AS my_share,
-			s.is_settled
+			s.is_settled AS is_settled,
+
+			COUNT(es.id) AS split_count,
+
+			CASE
+				WHEN e.paid_by_id = ?
+				THEN SUM(es.amount) - COALESCE(ps.paid_sum, 0)
+				ELSE 0
+			END AS total_owed_to_me
+
 		FROM expenses e
-		JOIN expense_splits s ON s.expense_id = e.id
+
 		JOIN users u ON u.id = e.paid_by_id
-		WHERE
-			e.group_id = ?
-			AND s.user_id = ?
-		ORDER BY e.created_at DESC
-	`, groupID, userID).Scan(&results).Error
+		JOIN expense_splits s ON s.expense_id = e.id AND s.user_id = ?
+		JOIN expense_splits es ON es.expense_id = e.id
+
+		LEFT JOIN (
+			SELECT
+				expense_id,
+				SUM(amount) AS paid_sum
+			FROM expense_splits
+			WHERE is_settled = true
+			GROUP BY expense_id
+		) ps ON ps.expense_id = e.id
+
+		WHERE e.group_id = ?
+
+		GROUP BY
+			e.id, u.username, s.amount, s.is_settled, ps.paid_sum
+	`,
+		userID, // for totalOwedToMe CASE
+		userID, // my share
+		groupID,
+	).Scan(&results).Error
 
 	return results, err
 }
