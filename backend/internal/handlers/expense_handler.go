@@ -142,3 +142,28 @@ func (h *ExpenseHandler) ListExpensesWithShare(c *gin.Context) {
 
 	c.JSON(200, expensesWithShare)
 }
+
+func (h *ExpenseHandler) GetSettlementSuggestions(c *gin.Context) {
+
+	val, exist := c.Get("userID")
+	if !exist {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+	userID := val.(uint)
+
+	groupIDParam := c.Param("groupId")
+	groupID, err := strconv.ParseUint(groupIDParam, 10, 64)
+	if err != nil || groupID == 0 {
+		c.JSON(400, gin.H{"error": "invalid group id"})
+		return
+	}
+
+	data, err := h.expenseService.GetSettlementSuggestions(uint(groupID), userID)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, data)
+}

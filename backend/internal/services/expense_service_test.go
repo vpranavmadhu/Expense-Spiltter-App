@@ -313,3 +313,47 @@ func TestListExpensesWithShare_Success(t *testing.T) {
 		t.Fatalf("expected myShare 300, got %v", expenses[0].MyShare)
 	}
 }
+
+func TestGetSettlementSuggestions_Success(t *testing.T) {
+
+	groupRepo := &mockGroupRepo{
+		requesterIsMember: true,
+		members: []models.User{
+			{ID: 1, Username: "pranav"},
+			{ID: 2, Username: "raju"},
+			{ID: 3, Username: "aman"},
+		},
+	}
+
+	expenseRepo := &mockExpenseRepo{
+		splits: []models.ExpenseSplitWithExpense{
+			{UserID: 1, PaidByID: 1, Amount: 100},
+			{UserID: 2, PaidByID: 1, Amount: 100},
+			{UserID: 3, PaidByID: 1, Amount: 100},
+		},
+	}
+
+	service := NewExpenseService(expenseRepo, groupRepo, nil)
+
+	suggestions, err := service.GetSettlementSuggestions(1, 1)
+
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(suggestions) != 2 {
+		t.Fatalf("expected 2 suggestions, got %d", len(suggestions))
+	}
+
+	if suggestions[0].FromUser != "raju" ||
+		suggestions[0].ToUser != "pranav" ||
+		suggestions[0].Amount != 100 {
+		t.Fatalf("unexpected suggestion %v", suggestions[0])
+	}
+
+	if suggestions[1].FromUser != "aman" ||
+		suggestions[1].ToUser != "pranav" ||
+		suggestions[1].Amount != 100 {
+		t.Fatalf("unexpected suggestion %v", suggestions[1])
+	}
+}

@@ -17,3 +17,11 @@ type PaymentHistoryRespone struct {
 	CreatedAt time.Time `json:"createdAt"`
 	Direction string    `json:"direction"` // paid or recieved
 }
+
+type SettlementSuggestionResponse struct {
+	FromUserID uint    `json:"fromUserId"`
+	FromUser   string  `json:"fromUser"`
+	ToUserID   uint    `json:"toUserId"`
+	ToUser     string  `json:"toUser"`
+	Amount     float64 `json:"amount"`
+}

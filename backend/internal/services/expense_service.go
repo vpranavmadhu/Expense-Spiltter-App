@@ -14,6 +14,7 @@ type ExpenseService interface {
 	CalculateBalances(requesterID, groupID uint) (map[uint]float64, error)
 	MarkAsPaid(requesterID uint, req dto.MarkPaidRequest) error
 	ListExpensesWithShare(groupID, requesterID uint) ([]dto.ExpenseResponse, error)
+	GetSettlementSuggestions(groupID, requesterID uint) ([]dto.SettlementSuggestionResponse, error)
 }
 
 type expenseService struct {
@@ -176,4 +177,73 @@ func (s *expenseService) ListExpensesWithShare(groupID, requesterID uint) ([]dto
 	}
 
 	return s.expenseRepo.GetExpensesWithMyShare(groupID, requesterID)
+}
+
+func (s *expenseService) GetSettlementSuggestions(groupID, requesterID uint) ([]dto.SettlementSuggestionResponse, error) {
+
+	isMember, err := s.groupRepo.IsMember(groupID, requesterID)
+	if err != nil || !isMember {
+		return nil, errors.New("not authorized")
+	}
+
+	balances, err := s.CalculateBalances(requesterID, groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	members, err := s.groupRepo.GetMembersByGroupID(groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	userMap := make(map[uint]string)
+	for _, m := range members {
+		userMap[m.ID] = m.Username
+	}
+
+	type pair struct {
+		userID uint
+		amount float64
+	}
+
+	var debtors []pair
+	var creditors []pair
+
+	for uid, bal := range balances {
+		if bal < 0 {
+			debtors = append(debtors, pair{uid, -bal})
+		} else if bal > 0 {
+			creditors = append(creditors, pair{uid, bal})
+		}
+	}
+
+	var result []dto.SettlementSuggestionResponse
+
+	i, j := 0, 0
+	for i < len(debtors) && j < len(creditors) {
+		d := &debtors[i]
+		c := &creditors[j]
+
+		amt := math.Min(d.amount, c.amount)
+
+		result = append(result, dto.SettlementSuggestionResponse{
+			FromUserID: d.userID,
+			FromUser:   userMap[d.userID],
+			ToUserID:   c.userID,
+			ToUser:     userMap[c.userID],
+			Amount:     math.Round(amt*100) / 100,
+		})
+
+		d.amount -= amt
+		c.amount -= amt
+
+		if d.amount == 0 {
+			i++
+		}
+		if c.amount == 0 {
+			j++
+		}
+	}
+
+	return result, nil
 }
