@@ -5,6 +5,8 @@ import Login from './pages/Login'
 import Groups from './pages/Groups'
 import Navbar from './components/Navbar'
 import GroupDetail from './pages/GroupDetail'
+import History from './pages/PaymentHistory'
+import PaymentHistory from './pages/PaymentHistory'
 
 export const Router = ({ user, setUser }) => {
   const handleLogout = () => {
@@ -54,6 +56,20 @@ export const Router = ({ user, setUser }) => {
       />
 
       <Route path="*" element={<Navigate to="/groups" />} />
+
+      <Route
+        path="/paymenthistory"
+        element={
+          user ? (
+            <>
+              <Navbar user={user} onLogout={handleLogout} />
+              <PaymentHistory />
+            </>
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
     </Routes>
   );
 }
