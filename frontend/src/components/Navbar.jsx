@@ -1,4 +1,4 @@
-import { LogOut, UserCircle, Wallet } from "lucide-react";
+import { LogOut, UserCircle, Wallet, History } from "lucide-react";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
 
@@ -24,7 +24,7 @@ export default function Navbar({ user, onLogout }) {
           </h1>
         </div>
 
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full">
             <UserCircle className="w-6 h-6 text-gray-600" />
             <span className="text-sm text-gray-800 font-medium">
@@ -33,11 +33,17 @@ export default function Navbar({ user, onLogout }) {
           </div>
 
           <button
+            onClick={() => navigate("/paymenthistory")}
+            className="flex items-center gap bg-white  px-4 py-2 rounded-full text-sm font-medium text-gray-700 border border-gray-200 hover:bg-gray-100
+              hover:text-gray-900
+              transition">
+            <History className="w-4 h-4" />
+            History
+          </button>
+
+          <button
             onClick={handleLogout}
-            className="flex items-center gap-2 text-sm bg-red-500 text-white 
-                       px-4 py-2 rounded-full hover:bg-red-600 
-                       transition"
-          >
+            className="flex items-center gap-2 text-sm bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition">
             <LogOut className="w-4 h-4" />
             Logout
           </button>
