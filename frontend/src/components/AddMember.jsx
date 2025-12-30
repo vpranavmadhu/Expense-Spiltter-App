@@ -25,20 +25,49 @@ export default function AddMember({ groupId, onAdded }) {
   }
 
   return (
-    <div className="flex gap-2">
+    <div className="
+      flex items-center gap-3
+      bg-white/80 backdrop-blur
+      border border-gray-100
+      rounded-xl p-3
+      shadow-sm
+    ">
       <input
         type="email"
-        placeholder="Enter email to add"
+        placeholder="Add member by email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="border rounded px-3 py-2 flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="
+          flex-1
+          bg-transparent
+          px-4 py-2
+          text-sm
+          rounded-full
+          border border-gray-200
+          focus:outline-none
+          focus:ring-2 focus:ring-blue-500
+          focus:border-blue-500
+          transition
+        "
       />
+
       <button
         onClick={addMember}
         disabled={loading}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+        className="
+          px-5 py-2
+          text-sm font-medium
+          text-white
+          rounded-full
+          bg-blue-600
+          hover:bg-blue-700
+          shadow-sm hover:shadow-md
+          disabled:opacity-50
+          disabled:cursor-not-allowed
+          transition
+        "
       >
-        Add
+        {loading ? "Adding…" : "Add"}
       </button>
     </div>
   )
