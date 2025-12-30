@@ -150,6 +150,17 @@ func (s *expenseService) MarkAsPaid(requesterID uint, req dto.MarkPaidRequest) e
 		return errors.New("not authorized")
 	}
 
+	payment := models.SettlementPayment{
+		GroupID:    req.GroupID,
+		FromUserID: requesterID,
+		ToUserID:   req.ToUserID,
+		Amount:     req.Amount,
+	}
+
+	if err := s.settlementRepo.Create(&payment); err != nil {
+		return err
+	}
+
 	return s.expenseRepo.SettleExpenseSplit(req.ExpenseID, requesterID)
 
 }

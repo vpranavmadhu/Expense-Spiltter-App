@@ -44,6 +44,9 @@ func (m *mockExpenseRepo) GetExpensesWithMyShare(groupID uint, userID uint) ([]d
 type mockSettlementRepo struct {
 	createErr error
 	payments  []models.SettlementPayment
+
+	paymentHis     []dto.PaymentHistoryRespone
+	payementHisErr error
 }
 
 func (m *mockSettlementRepo) Create(p *models.SettlementPayment) error {
@@ -56,6 +59,10 @@ func (m *mockSettlementRepo) GetByGroupID(groupID uint) ([]models.SettlementPaym
 
 func (m *mockExpenseRepo) SettleExpenseSplit(expenseID, userID uint) error {
 	return m.settleErr
+}
+
+func (m *mockSettlementRepo) GetPaymentHistoryByUser(userID uint) ([]dto.PaymentHistoryRespone, error) {
+	return m.paymentHis, m.payementHisErr
 }
 
 func TestCreateExpense_Success(t *testing.T) {
@@ -246,11 +253,9 @@ func TestMarkAsPaid_Success(t *testing.T) {
 		requesterIsMember: true,
 	}
 
-	service := NewExpenseService(
-		expenseRepo,
-		groupRepo,
-		nil,
-	)
+	settleRepo := &mockSettlementRepo{}
+
+	service := NewExpenseService(expenseRepo, groupRepo, settleRepo)
 
 	req := dto.MarkPaidRequest{
 		GroupID:   10,
