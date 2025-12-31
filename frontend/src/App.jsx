@@ -1,27 +1,36 @@
-import { BrowserRouter} from "react-router-dom";
-import { useEffect, useState } from "react";
-import api from "./api";
+import { useEffect } from "react";
+import { BrowserRouter } from "react-router-dom";
+import { Provider, useDispatch, useSelector } from "react-redux";
+import { store } from "./store/store";
+import { setUser, stopLoading } from "./store/authSlice";
 import { Router } from "./Router";
+import api from "./api";
 
-function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+function AppContent() {
+  const dispatch = useDispatch();
+  const { loading } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    api
-      .get("/api/me")
-      .then((res) => setUser(res.data))
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
-  }, []);
+    api.get("/api/me")
+      .then((res) => {
+        dispatch(setUser(res.data));
+      })
+      .catch(() => {
+        dispatch(stopLoading());
+      });
+  }, [dispatch]);
 
-  if (loading) return <div className="p-4">Loading...</div>;
+  if (loading) return <div className="p-10 text-center font-bold text-slate-400">LOADING...</div>;
 
-  return (
-    <BrowserRouter>
-      <Router user={user} setUser={setUser} />
-    </BrowserRouter>
-  );
+  return <Router />;
 }
 
-export default App;
+export default function App() {
+  return (
+    <Provider store={store}>
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
+    </Provider>
+  );
+}
