@@ -7,50 +7,48 @@ export default function PaymentHistoryCard({ item }) {
     <div
       className={`
         flex justify-between items-center
-        p-5 rounded-xl border
-        shadow-sm hover:shadow-md transition
-        ${isPaid ? "bg-red-50 border-red-100" : "bg-green-50 border-green-100"}
+        p-6 rounded-3xl border
+        shadow-sm hover:shadow-lg transition-all duration-300
+        ${isPaid ? "bg-rose-50 border-rose-100" : "bg-emerald-50 border-emerald-100"}
       `}
     >
-      {/* LEFT */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-5">
         <div
           className={`
-            p-2 rounded-full
-            ${isPaid ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"}
+            w-12 h-12 flex items-center justify-center rounded-2xl
+            ${isPaid ? "bg-white text-rose-500 shadow-sm" : "bg-white text-emerald-500 shadow-sm"}
           `}
         >
-          {isPaid ? <ArrowUpRight /> : <ArrowDownLeft />}
+          {isPaid ? <ArrowUpRight className="w-6 h-6" /> : <ArrowDownLeft className="w-6 h-6" />}
         </div>
 
         <div>
-          <p className="font-semibold text-gray-900">
-            {isPaid ? "You paid" : "You received"}
+          <p className="font-black text-slate-900 text-lg">
+            {isPaid ? "You Paid" : "You Received"}
           </p>
 
-          <p className="text-sm text-gray-600">
-            {item.fromUser} ({item.fromEmail})
+          <p className="text-sm font-bold text-slate-600">
+            {item.fromUser} <span className="text-slate-400 font-medium text-xs">({item.fromEmail})</span>
           </p>
 
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
             Group: {item.groupName}
           </p>
         </div>
       </div>
 
-      {/* RIGHT */}
       <div className="text-right">
         <p
-          className={`text-lg font-bold ${
-            isPaid ? "text-red-600" : "text-green-600"
+          className={`text-2xl font-black ${
+            isPaid ? "text-rose-600" : "text-emerald-600"
           }`}
         >
           ₹{item.amount}
         </p>
 
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
           {new Date(item.createdAt).toLocaleDateString()} •{" "}
-          {new Date(item.createdAt).toLocaleTimeString()}
+          {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </p>
       </div>
     </div>
