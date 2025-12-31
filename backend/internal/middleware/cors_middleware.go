@@ -6,7 +6,12 @@ func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		origin := c.GetHeader("Origin")
 
-		if origin == "http://localhost:5173" {
+		allowedOrigins := map[string]bool{
+			"http://localhost:5173": true,
+			"http://192.168.0.153":  true,
+		}
+
+		if allowedOrigins[origin] {
 			c.Header("Access-Control-Allow-Origin", origin)
 		}
 		c.Header("Access-Control-Allow-Credentials", "true")
