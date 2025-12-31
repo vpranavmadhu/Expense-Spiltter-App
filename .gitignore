@@ -4,5 +4,6 @@ frontend/**/dist/
 frontend/**/.env*
 
 # Backend
-backend/.env
 backend/**/coverage.out
+
+.env
