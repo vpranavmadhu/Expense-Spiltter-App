@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
 import { Trash2, Users, Calendar, User } from "lucide-react";
+import { toast } from "react-toastify";
 
 export default function Groups() {
   const [groups, setGroups] = useState([]);
@@ -13,7 +14,7 @@ export default function Groups() {
   const fetchGroups = async () => {
     try {
       const res = await api.get("/api/groups");
-      setGroups(res.data  || []);
+      setGroups(res.data || []);
     } catch (err) {
       console.error("Failed to fetch groups");
     }
@@ -46,13 +47,18 @@ export default function Groups() {
 
   const handleDeleteGroup = async (e, groupId) => {
     e.stopPropagation();
-    if (!window.confirm("Are you sure you want to delete this group?")) return;
-
     try {
       await api.delete(`/api/groups/${groupId}`);
       fetchGroups();
     } catch (err) {
-      alert("Failed to delete group");
+      const errorMsg = err.response?.data?.error;
+
+      if (errorMsg === "unauthorized") {
+        toast(`Oops.. U didn't created this account`);
+      } else {
+        toast("Failed: internal error");
+      }
+
     }
   };
 

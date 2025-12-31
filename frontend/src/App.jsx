@@ -5,6 +5,8 @@ import { store } from "./store/store";
 import { setUser, stopLoading } from "./store/authSlice";
 import { Router } from "./Router";
 import api from "./api";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function AppContent() {
   const dispatch = useDispatch();
@@ -30,6 +32,7 @@ export default function App() {
     <Provider store={store}>
       <BrowserRouter>
         <AppContent />
+        <ToastContainer position="bottom-right"  theme="dark" autoClose={3000} />
       </BrowserRouter>
     </Provider>
   );
