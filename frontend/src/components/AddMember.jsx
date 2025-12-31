@@ -7,7 +7,6 @@ export default function AddMember({ groupId, onAdded }) {
 
   const addMember = async () => {
     if (!email) return alert("Email required")
-
     try {
       setLoading(true)
       await axios.post(
@@ -17,57 +16,25 @@ export default function AddMember({ groupId, onAdded }) {
       )
       setEmail("")
       onAdded()
-    } catch (err) {
-      alert(err.response?.data?.error || "Failed to add member")
-    } finally {
-      setLoading(false)
     }
+    catch (err) { alert(err.response?.data?.error || "Failed") } finally { setLoading(false) }
   }
 
   return (
-    <div className="
-      flex items-center gap-3
-      bg-white/80 backdrop-blur
-      border border-gray-100
-      rounded-xl p-3
-      shadow-sm
-    ">
+    <div className="flex flex-col gap-2 pt-6 border-t border-gray-50">
       <input
         type="email"
         placeholder="Add member by email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="
-          flex-1
-          bg-transparent
-          px-4 py-2
-          text-sm
-          rounded-full
-          border border-gray-200
-          focus:outline-none
-          focus:ring-2 focus:ring-blue-500
-          focus:border-blue-500
-          transition
-        "
+        className="w-full bg-slate-50 border-none px-4 py-3 text-sm rounded-2xl focus:ring-2 focus:ring-purple-500 transition-all outline-none"
       />
-
       <button
         onClick={addMember}
         disabled={loading}
-        className="
-          px-5 py-2
-          text-sm font-medium
-          text-white
-          rounded-full
-          bg-blue-600
-          hover:bg-blue-700
-          shadow-sm hover:shadow-md
-          disabled:opacity-50
-          disabled:cursor-not-allowed
-          transition
-        "
+        className="w-full py-3 text-xs font-black text-white rounded-2xl bg-slate-900 hover:bg-black transition-all shadow-lg active:scale-95"
       >
-        {loading ? "Adding…" : "Add"}
+        {loading ? "ADDING..." : "ADD MEMBER"}
       </button>
     </div>
   )

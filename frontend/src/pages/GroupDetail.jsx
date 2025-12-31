@@ -5,6 +5,7 @@ import axios from "axios"
 import AddMember from "../components/AddMember"
 import ExpenseList from "../components/ExpenseList"
 import AddExpenseModal from "../components/AddExpenseModel"
+import SettlementSuggestions from "../components/SettlementSuggestions"
 
 export default function GroupDetail() {
   const { groupId } = useParams()
@@ -62,17 +63,16 @@ export default function GroupDetail() {
       {
         group_id: Number(groupId),
         expense_id: expense.id,
+        to_user_id: expense.paidById,
+        amount: expense.myShare
       },
-      { withCredentials: true }
-    )
-
+      { withCredentials: true })
     await fetchExpenses()
     await fetchBalances()
   }
 
   useEffect(() => {
     if (!groupId) return
-
     fetchMe()
     fetchGroup()
     fetchMembers()
@@ -80,54 +80,70 @@ export default function GroupDetail() {
     fetchBalances()
   }, [groupId])
 
-  if (!group || !user) {
-    return (
-      <div className="flex justify-center items-center h-screen text-gray-500">
-        Loading...
-      </div>
-    )
-  }
+  if (!group || !user) return <div className="flex justify-center items-center h-screen font-black text-slate-300 uppercase tracking-widest animate-pulse">Initializing Dashboard...</div>
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="min-h-screen bg-[#fcfdfe] p-6 lg:p-12">
+      <div className="max-w-8xl mx-auto">
 
-      <h1 className="text-3xl font-bold">{group.name}</h1>
-
-      {/* MEMBERS */}
-      <div className="bg-white shadow rounded p-4">
-        <h2 className="text-lg font-semibold mb-4">Members</h2>
-
-        <div className="flex flex-wrap gap-2 mb-4">
-          {members.map(m => (
-            <span
-              key={m.id}
-              className="px-4 py-1 bg-gray-100 rounded-full text-sm font-medium"
-            >
-              {m.username}
-            </span>
-          ))}
+        <div className="mb-14">
+          <span className="text-[10px] font-black text-purple-500 uppercase tracking-[0.4em] mb-3 block">Group Workspace</span>
+          <h1 className="text-6xl font-black text-slate-900 tracking-tighter leading-none">{group.name}</h1>
         </div>
 
-        <AddMember groupId={groupId} onAdded={fetchMembers} />
-      </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 items-start">
 
-      {/* ADD EXPENSE */}
-      <button
-        onClick={() => setShowAddExpense(true)}
-        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-      >
-        + Add Expense
-      </button>
+          <div className="lg:col-span-3">
+            <div className="bg-white border border-gray-50 rounded-[3rem] p-10 shadow-sm">
+              <h2 className="text-[15px] font-black text-slate-500 uppercase tracking-[0.2em] mb-8">Group Members</h2>
+              <div className="space-y-6 mb-10">
+                {members.map(m => (
+                  <div key={m.id} className="flex items-center gap-4 group cursor-default">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center text-sm font-black group-hover:bg-[#7c3aed] group-hover:text-white transition-all duration-300">
+                      {m.username[0].toUpperCase()}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-slate-800 font-bold text-base tracking-tight">{m.username}</span>
+                      {m.id === user.id && <span className="text-[9px] font-black text-purple-500 uppercase tracking-wider">You</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <AddMember groupId={groupId} onAdded={fetchMembers} />
+            </div>
+          </div>
 
-      {/* EXPENSES */}
-      <div className="bg-white shadow rounded p-4">
-        <h2 className="text-lg font-semibold mb-3">Expenses</h2>
+          <div className="lg:col-span-6 space-y-8">
 
-        <ExpenseList
-          expenses={expenses}
-          currentUserId={user.id}
-          onSettled={handleSettle}
-        />
+            <div className="bg-slate-700 rounded-[2.5rem] p-8 flex items-center justify-between shadow-2xl shadow-slate-200">
+              <div className="flex flex-col">
+                <h2 className="text-2xl font-black text-white tracking-tight italic">Activity Feed</h2>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{expenses.length} Total Transactions</span>
+              </div>
+
+              <button
+                onClick={() => setShowAddExpense(true)}
+                className="bg-[#7c3aed] hover:bg-[#8b5cf6] text-white px-8 py-3.5 rounded-2xl font-black text-xs shadow-lg transition-all active:scale-95 flex items-center gap-2 group uppercase tracking-widest"
+              >
+                <span className="text-xl group-hover:rotate-90 transition-transform duration-300">+</span>
+                New Expense
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <ExpenseList expenses={expenses} currentUserId={user.id} onSettled={handleSettle} />
+            </div>
+          </div>
+
+          <div className="lg:col-span-3">
+            <SettlementSuggestions
+              balances={balances}
+              members={members}
+              currentUserId={user.id}
+            />
+          </div>
+
+        </div>
       </div>
 
       {showAddExpense && (
@@ -135,10 +151,7 @@ export default function GroupDetail() {
           groupId={groupId}
           members={members}
           onClose={() => setShowAddExpense(false)}
-          onAdded={() => {
-            fetchExpenses()
-            fetchBalances()
-          }}
+          onAdded={() => { fetchExpenses(); fetchBalances(); }}
         />
       )}
     </div>
