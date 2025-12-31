@@ -1,6 +1,6 @@
 import { useState } from "react"
-import axios from "axios"
 import { toast } from "react-toastify"
+import api from "../api"
 
 export default function AddMember({ groupId, onAdded }) {
   const [email, setEmail] = useState("")
@@ -10,11 +10,7 @@ export default function AddMember({ groupId, onAdded }) {
     if (!email) return toast("Oops.. Email required")
     try {
       setLoading(true)
-      await axios.post(
-        `http://localhost:8080/api/groups/${groupId}/addmember`,
-        { email },
-        { withCredentials: true }
-      )
+      await api.post(`/api/groups/${groupId}/addmember`,{ email })
       setEmail("")
       onAdded()
     }

@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
-import axios from "axios"
 
 import AddMember from "../components/AddMember"
 import ExpenseList from "../components/ExpenseList"
 import AddExpenseModal from "../components/AddExpenseModel"
 import SettlementSuggestions from "../components/SettlementSuggestions"
+import api from "../api"
 
 export default function GroupDetail() {
   const { groupId } = useParams()
@@ -18,55 +18,38 @@ export default function GroupDetail() {
   const [showAddExpense, setShowAddExpense] = useState(false)
 
   const fetchMe = async () => {
-    const res = await axios.get(
-      "http://localhost:8080/api/me",
-      { withCredentials: true }
-    )
+    const res = await api.get("/api/me")
     setUser(res.data)
   }
 
   const fetchGroup = async () => {
-    const res = await axios.get(
-      `http://localhost:8080/api/groups/${groupId}`,
-      { withCredentials: true }
-    )
+    const res = await api.get(`/api/groups/${groupId}`)
     setGroup(res.data)
   }
 
   const fetchMembers = async () => {
-    const res = await axios.get(
-      `http://localhost:8080/api/groups/${groupId}/members`,
-      { withCredentials: true }
-    )
+    const res = await api.get(`/api/groups/${groupId}/members`)
     setMembers(res.data || [])
   }
 
   const fetchExpenses = async () => {
-    const res = await axios.get(
-      `http://localhost:8080/api/groups/${groupId}/expenses`,
-      { withCredentials: true }
-    )
+    const res = await api.get(`/api/groups/${groupId}/expenses`)
     setExpenses(res.data || [])
   }
 
   const fetchBalances = async () => {
-    const res = await axios.get(
-      `http://localhost:8080/api/groups/${groupId}/balances`,
-      { withCredentials: true }
-    )
+    const res = await api.get(`/api/groups/${groupId}/balances`)
     setBalances(res.data || {})
   }
 
   const handleSettle = async (expense) => {
-    await axios.post(
-      "http://localhost:8080/api/settlements",
+    await api.post("/api/settlements",
       {
         group_id: Number(groupId),
         expense_id: expense.id,
         to_user_id: expense.paidById,
         amount: expense.myShare
-      },
-      { withCredentials: true })
+      })
     await fetchExpenses()
     await fetchBalances()
   }

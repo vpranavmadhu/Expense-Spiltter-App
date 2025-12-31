@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
-import axios from "axios"
 import { toast } from "react-toastify"
+import api from "../api"
 
 export default function AddExpenseModal({ groupId, members = [], onClose, onAdded }) {
     
@@ -66,12 +66,12 @@ export default function AddExpenseModal({ groupId, members = [], onClose, onAdde
 
         try {
             setLoading(true)
-            await axios.post("http://localhost:8080/api/createexpense", {
+            await api.post("/api/createexpense", {
                 group_id: Number(groupId),
                 title,
                 amount: totalAmount,
                 splits: splitPayload,
-            }, { withCredentials: true })
+            })
             onAdded(); onClose();
         } catch (err) {
             toast(err.response?.data?.error || "Failed to create expense split")

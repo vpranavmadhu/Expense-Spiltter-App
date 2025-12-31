@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
-import axios from "axios"
-import { ArrowUpRight, ArrowDownLeft, Wallet } from "lucide-react"
+import { Wallet } from "lucide-react"
 import PaymentHistoryCard from "../components/PaymentHistoryCard"
+import api from "../api"
 
 export default function PaymentHistory() {
   const [history, setHistory] = useState([])
@@ -11,10 +11,7 @@ export default function PaymentHistory() {
     try {
       console.log("entered api callig");
       
-      const res = await axios.get(
-        "http://localhost:8080/api/payments/history",
-        { withCredentials: true }
-      )
+      const res = await api.get("/api/payments/history")
       setHistory(res.data)
     } catch (err) {
       console.error("Failed to load history", err)
