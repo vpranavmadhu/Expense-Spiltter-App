@@ -39,8 +39,10 @@ func (r *groupRepository) IsMember(groupID, userID uint) (bool, error) {
 
 func (r *groupRepository) GetGroupsByUserID(userID uint) ([]models.Group, error) {
 	var groups []models.Group
-
-	err := r.db.Joins("JOIN group_members gm ON gm.group_id = groups.id").
+	err := r.db.
+		Preload("Creator").
+		Preload("Members").
+		Joins("JOIN group_members gm ON gm.group_id = groups.id").
 		Where("gm.user_id = ?", userID).
 		Find(&groups).Error
 

@@ -66,11 +66,24 @@ func (h *GroupHandler) ListGroups(c *gin.Context) {
 		return
 	}
 
-	response := make([]gin.H, 0)
+	var response []dto.GroupResponse
+
 	for _, g := range groups {
-		response = append(response, gin.H{
-			"id":   g.ID,
-			"name": g.Name,
+		var membersDto []dto.Member
+		for _, u := range g.Members {
+			membersDto = append(membersDto, dto.Member{
+				ID:       u.ID,
+				Username: u.Username,
+				Email:    u.Email,
+			})
+		}
+
+		response = append(response, dto.GroupResponse{
+			ID:          g.ID,
+			Name:        g.Name,
+			CreatorName: g.Creator.Username,
+			CreatedAt:   g.CreatedAt,
+			Members:     membersDto,
 		})
 	}
 
