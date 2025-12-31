@@ -8,4 +8,6 @@ type Group struct {
 	CreatedBy uint   `gorm:"not null"`
 	Creator   User   `gorm:"foreignKey:CreatedBy;constraint:OnDelete:CASCADE"`
 	CreatedAt time.Time
+
+	Members []User `gorm:"many2many:group_members;"`
 }
