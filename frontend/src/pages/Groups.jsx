@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
+import { Trash2, Users, Calendar, User } from "lucide-react";
 
 export default function Groups() {
   const [groups, setGroups] = useState([]);
@@ -10,8 +11,12 @@ export default function Groups() {
   const navigate = useNavigate();
 
   const fetchGroups = async () => {
-    const res = await api.get("/api/groups");
-    setGroups(res.data);
+    try {
+      const res = await api.get("/api/groups");
+      setGroups(res.data  || []);
+    } catch (err) {
+      console.error("Failed to fetch groups");
+    }
   };
 
   useEffect(() => {
@@ -39,30 +44,39 @@ export default function Groups() {
     }
   };
 
+  const handleDeleteGroup = async (e, groupId) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this group?")) return;
+
+    try {
+      await api.delete(`/api/groups/${groupId}`);
+      fetchGroups();
+    } catch (err) {
+      alert("Failed to delete group");
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* HEADER */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold text-gray-900">
-            Your Groups
+    <div className="min-h-screen bg-[#fcfdfe] p-6 lg:p-12">
+      <div className="max-w-5xl mx-auto">
+        <div className="mb-12">
+          <h1 className="text-5xl font-black text-slate-900 tracking-tight mb-2">
+            Your Workspace
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">
             Manage and track shared expenses easily
           </p>
         </div>
 
-        {/* CREATE GROUP CARD */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">
-            Create a new group
+        <div className="bg-white rounded-4xl border border-slate-100 shadow-sm p-8 mb-12">
+          <h2 className="text-xl font-black text-slate-900 mb-6">
+            Start a new group
           </h2>
 
-          <form onSubmit={handleCreateGroup} className="flex gap-4">
+          <form onSubmit={handleCreateGroup} className="flex flex-col md:flex-row gap-4">
             <input
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-2
-                         focus:outline-none focus:ring-2 focus:ring-blue-500
-                         focus:border-blue-500 transition"
+              className="flex-1 bg-slate-50 border-none rounded-2xl px-6 py-4 font-bold text-slate-700
+                         focus:outline-none focus:ring-2 focus:ring-purple-500 transition placeholder:text-slate-300"
               placeholder="e.g. Goa Trip, Roommates, Office Lunch"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -70,42 +84,79 @@ export default function Groups() {
 
             <button
               disabled={loading}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg
-                         hover:bg-blue-700 transition
+              className="bg-[#7c3aed] text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest
+                         hover:bg-[#6d28d9] shadow-lg shadow-purple-100 transition-all active:scale-95
                          disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Creating..." : "Create"}
+              {loading ? "Creating..." : "Create Group"}
             </button>
           </form>
 
           {error && (
-            <p className="text-red-500 text-sm mt-3">{error}</p>
+            <p className="text-rose-500 text-xs font-bold mt-4 bg-rose-50 inline-block px-3 py-1 rounded-lg">
+              {error}
+            </p>
           )}
         </div>
 
-        {/* GROUP LIST */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {groups.map((g) => (
             <div
               key={g.id}
-              className="bg-white rounded-xl shadow-sm p-5
-                         hover:shadow-md transition cursor-pointer"
+              className="group bg-white rounded-4xl border border-slate-100 shadow-sm p-8
+                         hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer relative"
               onClick={() => navigate(`/groups/${g.id}`)}
             >
-              <h3 className="text-lg font-medium text-gray-900">
-                {g.name}
-              </h3>
-              <p className="text-sm text-gray-500 mt-1">
-                Click to view details
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-2xl font-black text-slate-800 group-hover:text-purple-600 transition-colors">
+                  {g.name}
+                </h3>
+
+                <button
+                  onClick={(e) => handleDeleteGroup(e, g.id)}
+                  className="p-2 rounded-xl text-slate-300 hover:bg-rose-50 hover:text-rose-500 transition-colors"
+                  title="Delete Group"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="flex flex-wrap gap-3 mt-6">
+                <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+                  <User className="w-3 h-3 text-slate-400" />
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                    {g.creator_name || "You"}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+                  <Calendar className="w-3 h-3 text-slate-400" />
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                    {g.created_at ? new Date(g.created_at).toLocaleDateString() : "Recently"}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5 bg-purple-50 px-3 py-1.5 rounded-lg border border-purple-100">
+                  <Users className="w-3 h-3 text-purple-500" />
+                  <span className="text-[10px] font-black text-purple-600 uppercase tracking-wide">
+                    {g.members ? g.members.length : 1} Members
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest mt-6 flex items-center gap-1">
+                View Details &rarr;
               </p>
             </div>
           ))}
         </div>
 
         {groups.length === 0 && (
-          <p className="text-gray-500 mt-6">
-            You haven’t created or joined any groups yet.
-          </p>
+          <div className="text-center py-16 opacity-50">
+            <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">
+              No groups yet. Create one to get started.
+            </p>
+          </div>
         )}
       </div>
     </div>
