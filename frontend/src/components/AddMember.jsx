@@ -1,12 +1,13 @@
 import { useState } from "react"
 import axios from "axios"
+import { toast } from "react-toastify"
 
 export default function AddMember({ groupId, onAdded }) {
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
 
   const addMember = async () => {
-    if (!email) return alert("Email required")
+    if (!email) return toast("Oops.. Email required")
     try {
       setLoading(true)
       await axios.post(
@@ -17,7 +18,7 @@ export default function AddMember({ groupId, onAdded }) {
       setEmail("")
       onAdded()
     }
-    catch (err) { alert(err.response?.data?.error || "Failed") } finally { setLoading(false) }
+    catch (err) { toast(err.response?.data?.error || "Enter a valid Email") } finally { setLoading(false) }
   }
 
   return (

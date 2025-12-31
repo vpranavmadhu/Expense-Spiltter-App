@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
+import { toast } from "react-toastify"
 
 export default function AddExpenseModal({ groupId, members = [], onClose, onAdded }) {
     
@@ -42,14 +43,14 @@ export default function AddExpenseModal({ groupId, members = [], onClose, onAdde
     }
 
     const submit = async () => {
-        if (!title || !amount) return alert("Title and amount required")
+        if (!title || !amount) return toast("Oops.. Title and amount required")
 
         let splitPayload = []
         const totalAmount = Number(amount);
 
         if (splitType === "custom") {
             if (Math.abs(activeSplitsSum - totalAmount) > 0.01) {
-                return alert(`Total split must be exactly ₹${totalAmount}. Current: ₹${activeSplitsSum}`)
+                return toast(`Total split must be exactly ₹${totalAmount}. Current: ₹${activeSplitsSum}`)
             }
             splitPayload = selectedIds.map(id => ({
                 user_id: id,
@@ -73,7 +74,7 @@ export default function AddExpenseModal({ groupId, members = [], onClose, onAdde
             }, { withCredentials: true })
             onAdded(); onClose();
         } catch (err) {
-            alert(err.response?.data?.error || "Failed")
+            toast(err.response?.data?.error || "Failed to create expense split")
         } finally {
             setLoading(false)
         }

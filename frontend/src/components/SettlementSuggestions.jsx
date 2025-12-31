@@ -1,4 +1,5 @@
 import React from 'react';
+import { toast } from 'react-toastify';
 
 export default function SettlementSuggestions({ balances, members, currentUserId }) {
   const myBalance = balances[currentUserId] || 0;
@@ -14,7 +15,7 @@ export default function SettlementSuggestions({ balances, members, currentUserId
 
   const handleQuickSettleAll = () => {
     console.log("Triggering bulk settlement for all debts...");
-    alert(`Initiating payment for ₹${Math.abs(myBalance).toFixed(2)}. This will clear all your pending shares.`);
+    toast(`Initiating payment for ₹${Math.abs(myBalance).toFixed(2)}. This will clear all your pending shares.`);
   };
 
   return (
