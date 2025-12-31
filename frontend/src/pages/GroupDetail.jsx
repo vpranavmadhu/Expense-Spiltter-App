@@ -38,7 +38,7 @@ export default function GroupDetail() {
       `http://localhost:8080/api/groups/${groupId}/members`,
       { withCredentials: true }
     )
-    setMembers(res.data)
+    setMembers(res.data || [])
   }
 
   const fetchExpenses = async () => {
@@ -46,7 +46,7 @@ export default function GroupDetail() {
       `http://localhost:8080/api/groups/${groupId}/expenses`,
       { withCredentials: true }
     )
-    setExpenses(res.data)
+    setExpenses(res.data || [])
   }
 
   const fetchBalances = async () => {
@@ -54,7 +54,7 @@ export default function GroupDetail() {
       `http://localhost:8080/api/groups/${groupId}/balances`,
       { withCredentials: true }
     )
-    setBalances(res.data)
+    setBalances(res.data || {})
   }
 
   const handleSettle = async (expense) => {
