@@ -13,6 +13,7 @@ type GroupService interface {
 	ListGroups(userID uint) ([]models.Group, error)
 	ListMembers(requesterID, groupID uint) ([]models.User, error)
 	GetGroupByID(groupID, userID uint) (*models.Group, error)
+	DeleteGroup(userID uint, groupID uint) error
 }
 
 type groupService struct {
@@ -102,4 +103,15 @@ func (s *groupService) ListMembers(requesterID, groupID uint) ([]models.User, er
 	}
 
 	return s.groupRepo.GetMembersByGroupID(groupID)
+}
+
+func (s *groupService) DeleteGroup(userID uint, groupID uint) error {
+	group, err := s.groupRepo.FindByID(groupID)
+	if err != nil {
+		return errors.New("group not found")
+	}
+	if group.CreatedBy != userID {
+		return errors.New("unauthorized")
+	}
+	return s.groupRepo.DeleteGroup(groupID)
 }

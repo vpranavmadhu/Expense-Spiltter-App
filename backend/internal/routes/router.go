@@ -58,6 +58,7 @@ func SetupRoutes(db *gorm.DB) *gin.Engine {
 		api.POST("/settlements", expenseHandler.MarkAsPaid)
 		api.GET("/payments/history", paymentHandler.GetPaymentHistory)
 		api.GET("/groups/:groupId/settlements/suggestions", expenseHandler.GetSettlementSuggestions)
+		api.DELETE("/groups/:groupId", groupHandler.DeleteGroup)
 	}
 	return r
 }

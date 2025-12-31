@@ -130,3 +130,23 @@ func (h *GroupHandler) GetGroupByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, group)
 }
+
+func (h *GroupHandler) DeleteGroup(c *gin.Context) {
+	val, _ := c.Get("userID")
+	userID := val.(uint)
+
+	groupIDParam := c.Param("groupId")
+	groupID, _ := strconv.ParseUint(groupIDParam, 10, 64)
+
+	err := h.groupService.DeleteGroup(userID, uint(groupID))
+	if err != nil {
+		if err.Error() == "unauthorized" {
+			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Group deleted successfully"})
+}

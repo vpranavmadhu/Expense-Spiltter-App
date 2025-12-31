@@ -13,6 +13,7 @@ type GroupRepository interface {
 	GetGroupsByUserID(userID uint) ([]models.Group, error)
 	GetMembersByGroupID(groupID uint) ([]models.User, error)
 	FindByID(groupID uint) (*models.Group, error)
+	DeleteGroup(groupID uint) error
 }
 
 type groupRepository struct {
@@ -66,4 +67,30 @@ func (r *groupRepository) FindByID(groupID uint) (*models.Group, error) {
 		return nil, err
 	}
 	return &group, nil
+}
+
+func (r *groupRepository) GetGroupByID(id uint) (*models.Group, error) {
+	var group models.Group
+	if err := r.db.First(&group, id).Error; err != nil {
+		return nil, err
+	}
+	return &group, nil
+}
+
+func (r *groupRepository) DeleteGroup(id uint) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Exec("DELETE FROM group_members WHERE group_id = ?", id).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("group_id = ?", id).Delete(&models.Expense{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("group_id = ?", id).Delete(&models.SettlementPayment{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Delete(&models.Group{}, id).Error; err != nil {
+			return err
+		}
+		return nil
+	})
 }

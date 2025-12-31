@@ -58,6 +58,10 @@ func (m *mockGroupRepo) FindByID(groupID uint) (*models.Group, error) {
 	return m.group, m.groupErr
 }
 
+func (m *mockGroupRepo) DeleteGroup(groupID uint) error {
+	return m.groupErr
+}
+
 func TestCreatGroupSuccess(t *testing.T) {
 	groupRepo := &mockGroupRepo{}
 	userRepo := &mockUserRepo{}
