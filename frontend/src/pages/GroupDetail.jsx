@@ -66,11 +66,11 @@ export default function GroupDetail() {
   if (!group || !user) return <div className="flex justify-center items-center h-screen font-black text-slate-300 uppercase tracking-widest animate-pulse">Initializing Dashboard...</div>
 
   return (
-    <div className="min-h-screen bg-[#fcfdfe] p-6 lg:p-12">
+    <div className="min-h-screen bg-slate-200 p-6 lg:p-12">
       <div className="max-w-8xl mx-auto">
 
         <div className="mb-14">
-          <span className="text-[10px] font-black text-purple-500 uppercase tracking-[0.4em] mb-3 block">Group Workspace</span>
+          <span className="text-[15px] font-black text-purple-500 uppercase tracking-[0.4em] mb-3 block">Group Workspace</span>
           <h1 className="text-6xl font-black text-slate-900 tracking-tighter leading-none">{group.name}</h1>
         </div>
 
@@ -78,7 +78,7 @@ export default function GroupDetail() {
 
           <div className="lg:col-span-3">
             <div className="bg-white border border-gray-50 rounded-[3rem] p-10 shadow-sm">
-              <h2 className="text-[15px] font-black text-slate-500 uppercase tracking-[0.2em] mb-8">Group Members</h2>
+              <h2 className="text-[20px] font-black text-slate-500 uppercase tracking-[0.2em] mb-8">Group Members</h2>
               <div className="space-y-6 mb-10">
                 {members.map(m => (
                   <div key={m.id} className="flex items-center gap-4 group cursor-default">

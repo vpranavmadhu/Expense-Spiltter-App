@@ -63,7 +63,7 @@ export default function Groups() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fcfdfe] p-6 lg:p-12">
+    <div className="min-h-screen bg-slate-200 p-6 lg:p-12">
       <div className="max-w-5xl mx-auto">
         <div className="mb-12">
           <h1 className="text-5xl font-black text-slate-900 tracking-tight mb-2">
@@ -82,7 +82,7 @@ export default function Groups() {
           <form onSubmit={handleCreateGroup} className="flex flex-col md:flex-row gap-4">
             <input
               className="flex-1 bg-slate-50 border-none rounded-2xl px-6 py-4 font-bold text-slate-700
-                         focus:outline-none focus:ring-2 focus:ring-purple-500 transition placeholder:text-slate-300"
+                         focus:outline-none focus:ring-2 focus:ring-purple-500 transition placeholder:text-slate-400"
               placeholder="e.g. Goa Trip, Roommates, Office Lunch"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -159,7 +159,7 @@ export default function Groups() {
 
         {groups.length === 0 && (
           <div className="text-center py-16 opacity-50">
-            <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">
+            <p className="text-slate-600 font-bold uppercase tracking-widest text-sm">
               No groups yet. Create one to get started.
             </p>
           </div>

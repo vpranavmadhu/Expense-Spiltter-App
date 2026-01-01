@@ -1,5 +1,4 @@
 import React from 'react';
-import { toast } from 'react-toastify';
 
 export default function SettlementSuggestions({ balances, members, currentUserId }) {
   const myBalance = balances[currentUserId] || 0;
@@ -13,10 +12,6 @@ export default function SettlementSuggestions({ balances, members, currentUserId
     return member ? member.username : `User ${id}`;
   };
 
-  const handleQuickSettleAll = () => {
-    console.log("Triggering bulk settlement for all debts...");
-    toast(`Initiating payment for ₹${Math.abs(myBalance).toFixed(2)}. This will clear all your pending shares.`);
-  };
 
   return (
     <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm sticky top-10">
@@ -29,15 +24,6 @@ export default function SettlementSuggestions({ balances, members, currentUserId
         <p className="text-[10px] font-bold uppercase tracking-tight text-slate-500">
           {iOweMoney ? "Total amount you need to pay" : "Total amount owed to you"}
         </p>
-
-        {iOweMoney && (
-          <button
-            onClick={handleQuickSettleAll}
-            className="mt-6 w-full bg-slate-900 hover:bg-black text-white py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-rose-100 transition-all active:scale-95 flex items-center justify-center gap-2"
-          >
-            ⚡ Quick Settle All
-          </button>
-        )}
       </div>
 
       <div className="mt-10">

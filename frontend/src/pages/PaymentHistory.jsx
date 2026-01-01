@@ -27,7 +27,7 @@ export default function PaymentHistory() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen text-gray-500">
+      <div className="min-h-screen bg-slate-200 flex justify-center items-center h-screen text-gray-500">
         Loading payment history...
       </div>
     )
@@ -35,7 +35,7 @@ export default function PaymentHistory() {
 
   if (history == null) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen text-gray-400">
+      <div className="min-h-screen bg-slate-200 flex flex-col items-center justify-center h-screen text-gray-400">
         <Wallet className="w-10 h-10 mb-3" />
         <p>No payment history yet</p>
       </div>
@@ -43,7 +43,7 @@ export default function PaymentHistory() {
   }  
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-5">
+    <div className="min-h-screen bg-slate-200 max-w-4xl mx-auto p-6 space-y-5">
       <h1 className="text-3xl font-bold text-gray-900">
         Payment History
       </h1>

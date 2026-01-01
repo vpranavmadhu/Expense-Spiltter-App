@@ -10,7 +10,7 @@ export default function AddMember({ groupId, onAdded }) {
     if (!email) return toast("Oops.. Email required")
     try {
       setLoading(true)
-      await api.post(`/api/groups/${groupId}/addmember`,{ email })
+      await api.post(`/api/groups/${groupId}/addmember`, { email })
       setEmail("")
       onAdded()
     }
@@ -21,11 +21,10 @@ export default function AddMember({ groupId, onAdded }) {
     <div className="flex flex-col gap-2 pt-6 border-t border-gray-50">
       <input
         type="email"
-        placeholder="Add member by email"
+        placeholder="example@gmail.com"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="w-full bg-slate-50 border-none px-4 py-3 text-sm rounded-2xl focus:ring-2 focus:ring-purple-500 transition-all outline-none"
-      />
+        className="w-full bg-slate-50 border-none px-4 py-3 text-sm rounded-2xl placeholder:italic placeholder:text-gray-400 focus:ring-2 focus:ring-purple-500 transition-all outline-none"/>
       <button
         onClick={addMember}
         disabled={loading}

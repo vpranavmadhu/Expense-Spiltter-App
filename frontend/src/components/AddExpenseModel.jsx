@@ -3,7 +3,7 @@ import { toast } from "react-toastify"
 import api from "../api"
 
 export default function AddExpenseModal({ groupId, members = [], onClose, onAdded }) {
-    
+
     const safeMembers = members || []
     const [title, setTitle] = useState("")
     const [amount, setAmount] = useState("")
@@ -13,6 +13,7 @@ export default function AddExpenseModal({ groupId, members = [], onClose, onAdde
     const [selectedIds, setSelectedIds] = useState(() => {
         return safeMembers.map(m => m.id)
     })
+    const isInvalid = Number(amount) <= 0
 
     useEffect(() => {
         if (safeMembers.length > 0) {
@@ -43,10 +44,21 @@ export default function AddExpenseModal({ groupId, members = [], onClose, onAdde
     }
 
     const submit = async () => {
-        if (!title || !amount) return toast("Oops.. Title and amount required")
+        const totalAmount = Number(amount)
+
+        if (!title.trim()) {
+            return toast("Title is required")
+        }
+
+        if (!amount) {
+            return toast("Amount is required")
+        }
+
+        if (isNaN(totalAmount) || totalAmount <= 0) {
+            return toast("Amount must be greater than 0")
+        }
 
         let splitPayload = []
-        const totalAmount = Number(amount);
 
         if (splitType === "custom") {
             if (Math.abs(activeSplitsSum - totalAmount) > 0.01) {
@@ -95,7 +107,7 @@ export default function AddExpenseModal({ groupId, members = [], onClose, onAdde
                 <div className="space-y-5">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Title</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Title*</label>
                             <input
                                 type="text"
                                 placeholder="Dinner?"
@@ -105,7 +117,7 @@ export default function AddExpenseModal({ groupId, members = [], onClose, onAdde
                             />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Amount</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Amount*</label>
                             <input
                                 type="number"
                                 min="0"
@@ -170,9 +182,19 @@ export default function AddExpenseModal({ groupId, members = [], onClose, onAdde
                                                 <input
                                                     type="number"
                                                     min="0"
+                                                    disabled={isInvalid || loading}
                                                     value={splits[m.id] || ""}
                                                     placeholder="0"
-                                                    className="bg-slate-50 border-none rounded-lg px-6 py-1 text-xs font-black w-24 text-right focus:ring-1 focus:ring-purple-500 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                    className="bg-slate-50 border-none rounded-lg px-6 py-1 text-xs font-black w-24 text-right
+                                                                focus:ring-1 focus:ring-purple-500 outline-none
+                                                                [appearance:textfield]
+                                                                [&::-webkit-outer-spin-button]:appearance-none
+                                                                [&::-webkit-inner-spin-button]:appearance-none
+
+                                                                disabled:opacity-50
+                                                                disabled:bg-slate-100
+                                                                disabled:text-slate-400
+                                                                disabled:cursor-not-allowed"
                                                     onChange={(e) => handleSplitChange(m.id, e.target.value)}
                                                 />
                                             </div>
@@ -194,7 +216,7 @@ export default function AddExpenseModal({ groupId, members = [], onClose, onAdde
                     <button onClick={onClose} className="flex-1 py-3 text-[11px] font-black text-slate-400 uppercase tracking-widest">Cancel</button>
                     <button
                         onClick={submit}
-                        disabled={loading}
+                        disabled={loading || isInvalid || !title.trim()}
                         className="flex-2 bg-[#7c3aed] hover:bg-[#6d28d9] text-white py-3 rounded-xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-purple-100 active:scale-95 disabled:opacity-50 transition-all"
                     >
                         {loading ? "Adding..." : "Confirm Expense"}
